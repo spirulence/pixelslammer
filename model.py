@@ -1,5 +1,7 @@
 __author__ = 'cseebach'
 
+from random import randint
+
 import pyglet
 
 class Tile(pyglet.image.ImageData):
@@ -7,8 +9,10 @@ class Tile(pyglet.image.ImageData):
     format = "RGBA"
 
     def __init__(self, tile_size):
-        data = "\0" * (len(self.format) * tile_size[0] * tile_size[1])
-        super(Tile, self).__init__(self, tile_size[0], tile_size[1], self.format, data)
+        data = []
+        for pix_num in xrange(tile_size[0] * tile_size[1]):
+            data.append(chr(randint(0,255))+chr(randint(0,255))+chr(randint(0,255))+"\xff")
+        super(Tile, self).__init__(tile_size[0], tile_size[1], self.format, "".join(data))
 
         self.drawn_on = False
 
@@ -22,16 +26,19 @@ class Canvas(object):
         self.canvas_size = canvas_size
 
         self.array = []
-        for y in canvas_size[1]:
+        for y in xrange(canvas_size[1]):
             self.array.append([])
-            for x in canvas_size[0]:
+            for x in xrange(canvas_size[0]):
                 self.array[y].append(Tile(tile_size))
 
     def get_tile(self, x, y):
         return self.array[y][x]
 
-    def get_dimensions(self):
+    def get_size(self):
         return self.canvas_size
+
+    def get_tile_size(self):
+        return self.tile_size
 
 class Palette(object):
     pass
