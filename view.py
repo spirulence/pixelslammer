@@ -50,6 +50,13 @@ class CanvasView(SelfRegistrant):
                 texture.height = scaled_h
                 texture.blit(x * scaled_w, y * scaled_h)
 
+    def on_mouse_press(self, x, y, button, modifier):
+        window_w, window_h = self.get_size()
+        x_ratio = float(x)/window_w
+        y_ratio = float(y)/window_h
+        self.dispatch_event("on_canvas_click", x_ratio, y_ratio, button,
+                            modifier)
+
 class SlammerView(object):
     """
     The User Interface to the Pixel Slammer data.
