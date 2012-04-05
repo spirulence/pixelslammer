@@ -28,7 +28,11 @@ class CanvasView(SelfRegistrant):
         self.fit_to_canvas()
 
     def fit_to_canvas(self):
-        pass
+        canvas_w, canvas_h = self.canvas.get_size()
+        tile_w, tile_h = self.canvas.get_tile_size()
+        new_w = canvas_w * tile_w * self.scale
+        new_h = canvas_h * tile_h * self.scale
+        self.set_size(new_w, new_h)
 
     def on_draw(self):
         self.clear()
