@@ -16,6 +16,13 @@ class Tile(pyglet.image.ImageData):
 
         self.drawn_on = False
 
+    def set_pixel(self, x, y, color):
+        pitch =  self.width * len(self.format)
+        data = list(self.get_data(self.format, pitch))
+        offset = pitch * y + len(self.format) * x
+        data[offset:offset+len(self.format)] = [chr(c) for c in color]
+        self.set_data(self.format, pitch, "".join(data))
+
 class Canvas(object):
     """
     Represents a paintable canvas composed of individual tiles.
