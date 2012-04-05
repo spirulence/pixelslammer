@@ -9,3 +9,7 @@ class SlammerCtrl(object):
         """
         Create a new PixelSlammer controller. Supply the model and the view.
         """
+        self.model = model
+        self.view = view
+        self.view.push_handlers(self)
+        self.view.canvas.set_canvas(model.get_canvas())
