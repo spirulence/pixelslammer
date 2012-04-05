@@ -35,15 +35,16 @@ class CanvasView(SelfRegistrant):
 
         canvas_w, canvas_h = self.canvas.get_size()
         tile_w, tile_h = self.canvas.get_tile_size()
+        scaled_w, scaled_h = tile_w * self.scale, tile_h * self.scale
 
         for y in xrange(canvas_h):
             for x in xrange(canvas_w):
                 texture = self.canvas.get_tile(x,y).get_texture()
                 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
                                    gl.GL_NEAREST)
-                texture.width = tile_w*self.scale
-                texture.height = tile_h*self.scale
-                texture.blit(x*self.scale*tile_w, y*self.scale*tile_h)
+                texture.width = scaled_w
+                texture.height = scaled_h
+                texture.blit(x * scaled_w, y * scaled_h)
 
 class SlammerView(object):
     """
