@@ -24,7 +24,7 @@ class SlammerCtrl(object):
         self.view.push_handlers(self)
         self.view.canvas.set_canvas(model.get_canvas())
 
-    def on_canvas_click(self, x, y, button, modifiers):
+    def on_canvas_click(self, x, y, buttons, modifiers):
         """
         When a spot on the canvas is clicked, this method is notified with x
         and y floating point coordinates.
@@ -32,9 +32,9 @@ class SlammerCtrl(object):
         #identify the right pixel
         tile_x, tile_y, pix_x, pix_y = get_tile_and_pixel(self.model.canvas, x, y)
 
-        if button == pyglet.window.mouse.LEFT:
+        if buttons & pyglet.window.mouse.LEFT:
             #turn it black
             self.model.canvas.get_tile(tile_x, tile_y).set_pixel(pix_x, pix_y, (0,0,0,255))
-        elif button == pyglet.window.mouse.RIGHT:
+        elif buttons & pyglet.window.mouse.RIGHT:
             #turn it white
             self.model.canvas.get_tile(tile_x, tile_y).set_pixel(pix_x, pix_y, (255,255,255,255))
