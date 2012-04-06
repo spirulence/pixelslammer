@@ -15,7 +15,7 @@ class SelfRegistrant(pyglet.window.Window):
 
 class CanvasView(SelfRegistrant):
 
-    dispatches = ["on_canvas_click"]
+    dispatches = ["on_canvas_click", "on_canvas_drag"]
 
     def __init__(self, *args, **kwargs):
         #kwargs.setdefault("visible", False)
