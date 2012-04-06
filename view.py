@@ -50,12 +50,21 @@ class CanvasView(SelfRegistrant):
                 texture.height = scaled_h
                 texture.blit(x * scaled_w, y * scaled_h)
 
-    def on_mouse_press(self, x, y, button, modifier):
+    def on_mouse_press(self, x, y, buttons, modifiers):
         window_w, window_h = self.get_size()
         x_ratio = float(x)/window_w
         y_ratio = float(y)/window_h
-        self.dispatch_event("on_canvas_click", x_ratio, y_ratio, button,
-                            modifier)
+        self.dispatch_event("on_canvas_click", x_ratio, y_ratio, buttons,
+                            modifiers)
+
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        window_w, window_h = self.get_size()
+        start_x = float(x - dx)/window_w
+        start_y = float(y - dy)/window_h
+        end_x = float(x)/window_w
+        end_y = float(y)/window_h
+        self.dispatch_event("on_canvas_drag", start_x, start_y, end_x, end_y,
+                            buttons, modifiers)
 
 class SlammerView(object):
     """
