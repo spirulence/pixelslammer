@@ -18,6 +18,10 @@ class SlammerCtrl(object):
         self.view.canvas.set_canvas(model.get_canvas())
 
     def get_canvas_pixel(self, x_ratio, y_ratio):
+        """
+        Given floating point coordinates between (0.0, 0.0) and (1.0, 1.0),
+        find the integer coordinates that correspond.
+        """
         canvas_w, canvas_h = self.model.canvas.get_size()
         tile_w, tile_h = self.model.canvas.get_tile_size()
         pix_x = int(x_ratio * canvas_w * tile_w)
