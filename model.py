@@ -1,6 +1,7 @@
 __author__ = 'cseebach'
 
 from random import randint
+import pickle
 
 import pyglet
 
@@ -65,4 +66,5 @@ class SlammerModel(object):
     def get_canvas(self):
         return self.canvas
 
-
+    def copy(self):
+        return pickle.loads(pickle.dumps(self))
