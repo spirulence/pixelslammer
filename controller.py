@@ -26,7 +26,18 @@ class SlammerCtrl(object):
         return pix_x, pix_y
 
     def plot(self, x, y, color):
+        """
+        Plot a pixel on the canvas in the specified color. If pixel specified
+        is out of bounds, do nothing.
+        """
+        canvas_w, canvas_h = self.model.canvas.get_size()
         tile_w, tile_h = self.model.canvas.get_tile_size()
+
+        max_x = canvas_w * tile_w
+        max_y = canvas_h * tile_h
+        if x < 0 or y < 0 or x >= max_x or y >= max_y:
+            return
+
         tile_x, tile_y = x // tile_w, y // tile_h
         tile_pix_x, tile_pix_y = x % tile_w, y % tile_h
 
