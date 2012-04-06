@@ -3,12 +3,22 @@ __author__ = 'cseebach'
 class Tool(object):
     """
     A base class for each kind of tool available in Pixel Slammer.
+
+    The Tool workflow:
+        Create the tool you want to use.
+
+        Send it input until the input accepting methods return an object that
+        evaluates to False.
+
+        Call the do() method of the created tool. This can be done multiple
+        times if you like. (Handy for undo/redo functionality)
     """
 
     class MoreInputNeeded(Exception):
         pass
 
     def __init__(self, color):
+        """Create a new Tool, and give it the color it should apply."""
         self.color = color
 
     def accept_click(self, x, y):
@@ -30,6 +40,9 @@ class Tool(object):
         """
 
 def plot(model, x, y, color):
+    """
+    Change the color of a single pixel on the model's canvas.
+    """
     canvas_w, canvas_h = model.canvas.get_size()
     tile_w, tile_h = model.canvas.get_tile_size()
 
@@ -45,6 +58,9 @@ def plot(model, x, y, color):
     tile.set_pixel(tile_pix_x, tile_pix_y, color)
 
 def draw_line(model, start_x, start_y, end_x, end_y, color):
+    """
+    Draw a line on the model's canvas in the specified color.
+    """
     steep = abs(end_y - start_y) > abs(end_x - start_x)
     if steep:
         start_x, start_y = start_y, start_x
