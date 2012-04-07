@@ -28,12 +28,6 @@ class CanvasView(pyglet.window.Window):
         texture.height = canvas.height * self.scale
         texture.blit(0, 0)
 
-    def on_draw(self):
-        self.clear()
-        self.draw_canvas(self.canvas)
-        if self.preview:
-            self.draw_canvas(self.preview)
-
     def show_preview(self, canvas):
         self.preview = canvas
 

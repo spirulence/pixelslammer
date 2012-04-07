@@ -195,6 +195,12 @@ class SlammerCtrl(object):
         if key == keys.Z and keys.MOD_CTRL & modifiers:
             self.undo()
 
+    def on_draw(self):
+        self.view.canvas.clear()
+        self.view.canvas.draw_canvas(self.model.canvas)
+        if self.view.canvas.preview:
+            self.view.canvas.draw_canvas(self.view.canvas.preview)
+
     def undo(self):
         self.model = self.base_model.copy()
         self.action_stack.pop()
