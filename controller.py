@@ -65,19 +65,9 @@ def plot(canvas, x, y, color):
     """
     Change the color of a single pixel on the model's canvas.
     """
-    canvas_w, canvas_h = canvas.get_size()
-    tile_w, tile_h = canvas.get_tile_size()
-
-    max_x = canvas_w * tile_w
-    max_y = canvas_h * tile_h
-    if x < 0 or y < 0 or x >= max_x or y >= max_y:
+    if x<0 or y<0 or x>=canvas.width or y>=canvas.height:
         return
-
-    tile_x, tile_y = x // tile_w, y // tile_h
-    tile_pix_x, tile_pix_y = x % tile_w, y % tile_h
-
-    tile = canvas.get_tile(tile_x, tile_y)
-    tile.set_pixel(tile_pix_x, tile_pix_y, color)
+    canvas.set_pixel(x, y, color)
 
 def draw_line(start_x, start_y, end_x, end_y):
     """
@@ -167,21 +157,20 @@ class SlammerCtrl(object):
         self.updated_model = model.copy()
         self.action_stack = []
         self.current_tool = Pencil
-        self.current_color = (0,50,0,255)
+        self.current_color = (0,255,0,255)
 
         self.view = view
         self.view.push_handlers(self)
-        self.view.canvas.set_canvas(self.updated_model.get_canvas())
+        self.view.canvas.set_canvas(self.updated_model.canvas)
 
     def get_canvas_pixel(self, x_ratio, y_ratio):
         """
         Given floating point coordinates between (0.0, 0.0) and (1.0, 1.0),
         find the integer coordinates that correspond.
         """
-        canvas_w, canvas_h = self.model.canvas.get_size()
-        tile_w, tile_h = self.model.canvas.get_tile_size()
-        pix_x = int(x_ratio * canvas_w * tile_w)
-        pix_y = int(y_ratio * canvas_h * tile_h)
+        canvas_w, canvas_h = self.model.canvas.width, self.model.canvas.height
+        pix_x = int(x_ratio * canvas_w)
+        pix_y = int(y_ratio * canvas_h)
 
         return pix_x, pix_y
 
@@ -195,7 +184,7 @@ class SlammerCtrl(object):
         """
         #identify the right pixel
         pix_x, pix_y = self.get_canvas_pixel(x, y)
-        print "press at", pix_x, pix_y
+        #print "press at", pix_x, pix_y
 
         if self.should_push_new_action():
             self.push_new_action()
@@ -213,7 +202,7 @@ class SlammerCtrl(object):
         #identify start and end pixels
         start_x, start_y = self.get_canvas_pixel(start_x_ratio, start_y_ratio)
         end_x, end_y = self.get_canvas_pixel(end_x_ratio, end_y_ratio)
-        print "drag from", start_x, start_y, "to", end_x, end_y
+        #print "drag from", start_x, start_y, "to", end_x, end_y
 
         if self.should_push_new_action():
             self.push_new_action()
@@ -222,9 +211,9 @@ class SlammerCtrl(object):
         self.run_action_if_ready()
 
     def on_canvas_release(self, x, y, buttons, modifiers):
-    #identify the right pixel
+        #identify the right pixel
         pix_x, pix_y = self.get_canvas_pixel(x, y)
-        print "release at", pix_x, pix_y
+        #print "release at", pix_x, pix_y
 
         if self.should_push_new_action():
             self.push_new_action()
@@ -245,7 +234,7 @@ class SlammerCtrl(object):
 
     def push_new_action(self):
         self.action_stack.append(self.current_tool(self.current_color))
-        print len(self.action_stack)
+        #print len(self.action_stack)
 
     def get_top_action(self):
         return self.action_stack[-1]

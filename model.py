@@ -5,49 +5,34 @@ import pickle
 
 import pyglet
 
-class Tile(pyglet.image.ImageData):
-
-    format = "RGBA"
-
-    def __init__(self, tile_size):
-        data = "\x00\x00\x00\x00" * (tile_size[0] * tile_size[1])
-        super(Tile, self).__init__(tile_size[0], tile_size[1], self.format, data)
-
-        self.drawn_on = False
-
-    def set_pixel(self, x, y, color):
-        pitch =  self.width * len(self.format)
-        data = list(self.get_data(self.format, pitch))
-        offset = pitch * y + len(self.format) * x
-        data[offset:offset+len(self.format)] = [chr(c) for c in color]
-        self.set_data(self.format, pitch, "".join(data))
-
-class Canvas(object):
+class Canvas(pyglet.image.ImageData):
     """
     Represents a paintable canvas composed of individual tiles.
     """
+
+    input_color_format = "RGBA"
 
     def __init__(self, tile_size, canvas_size):
         self.tile_size = tile_size
         self.canvas_size = canvas_size
 
-        self.array = []
-        for y in xrange(canvas_size[1]):
-            self.array.append([])
-            for x in xrange(canvas_size[0]):
-                self.array[y].append(Tile(tile_size))
+        width = tile_size[0] * canvas_size[0]
+        height = tile_size[1] * canvas_size[1]
+        data = "\x00\x00\x00\x00" * (width * height)
+        super(Canvas, self).__init__(width, height, "RGBA", data)
 
-    def get_tile(self, x, y):
-        return self.array[y][x]
+    def set_pixel(self, x, y, color):
+        cur_pitch = self.pitch
+        cur_format = self.format
+        format_len = len(cur_format)
+        data = list(self.get_data(cur_format, cur_pitch))
 
-    def get_size(self):
-        return self.canvas_size
+        c_dict = dict(zip(self.input_color_format, color))
+        new_pixel = [chr(c_dict[c]) for c in cur_format]
 
-    def get_tile_size(self):
-        return self.tile_size
-
-class Palette(object):
-    pass
+        offset = cur_pitch * y + format_len * x
+        data[offset:offset+format_len] = new_pixel
+        self.set_data(cur_format, cur_pitch, "".join(data))
 
 class SlammerModel(object):
     """
@@ -56,13 +41,6 @@ class SlammerModel(object):
 
     def __init__(self, tile_size=(16,16), canvas_size=(4,4)):
         self.canvas = Canvas(tile_size, canvas_size)
-        self.init_palette()
-
-    def init_palette(self):
-        pass
-
-    def get_canvas(self):
-        return self.canvas
 
     def copy(self):
         return pickle.loads(pickle.dumps(self))

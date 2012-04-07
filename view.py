@@ -20,7 +20,7 @@ class CanvasView(SelfRegistrant):
     def __init__(self, *args, **kwargs):
         super(CanvasView, self).__init__(*args, **kwargs)
 
-        self.scale = kwargs.get("scale", 6)
+        self.scale = kwargs.get("scale", 8)
         self.preview = None
 
     def set_canvas(self, canvas):
@@ -28,25 +28,17 @@ class CanvasView(SelfRegistrant):
         self.fit_to_canvas()
 
     def fit_to_canvas(self):
-        canvas_w, canvas_h = self.canvas.get_size()
-        tile_w, tile_h = self.canvas.get_tile_size()
-        new_w = canvas_w * tile_w * self.scale
-        new_h = canvas_h * tile_h * self.scale
+        new_w = self.canvas.width * self.scale
+        new_h = self.canvas.height * self.scale
         self.set_size(new_w, new_h)
 
     def draw_canvas(self, canvas):
-        canvas_w, canvas_h = canvas.get_size()
-        tile_w, tile_h = canvas.get_tile_size()
-        scaled_w, scaled_h = tile_w * self.scale, tile_h * self.scale
-
-        for y in xrange(canvas_h):
-            for x in xrange(canvas_w):
-                texture = canvas.get_tile(x,y).get_texture()
-                gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
-                                   gl.GL_NEAREST)
-                texture.width = scaled_w
-                texture.height = scaled_h
-                texture.blit(x * scaled_w, y * scaled_h)
+        texture = canvas.get_texture()
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
+                           gl.GL_NEAREST)
+        texture.width = canvas.width * self.scale
+        texture.height = canvas.height * self.scale
+        texture.blit(0, 0)
 
     def on_draw(self):
         self.clear()
