@@ -138,7 +138,7 @@ class Pencil(Tool):
     def get_preview(self):
         #determine max x and y
         x, y = zip(*self.to_plot)
-        canvas = Canvas((max(x), max(y)),(1,1))
+        canvas = Canvas((max(x)+1, max(y)+1),(1,1))
         for x, y, in self.to_plot:
             plot(canvas, x, y, self.color)
         return canvas
@@ -195,6 +195,7 @@ class SlammerCtrl(object):
         """
         #identify the right pixel
         pix_x, pix_y = self.get_canvas_pixel(x, y)
+        print "press at", pix_x, pix_y
 
         if self.should_push_new_action():
             self.push_new_action()
@@ -212,6 +213,7 @@ class SlammerCtrl(object):
         #identify start and end pixels
         start_x, start_y = self.get_canvas_pixel(start_x_ratio, start_y_ratio)
         end_x, end_y = self.get_canvas_pixel(end_x_ratio, end_y_ratio)
+        print "drag from", start_x, start_y, "to", end_x, end_y
 
         if self.should_push_new_action():
             self.push_new_action()
@@ -222,6 +224,7 @@ class SlammerCtrl(object):
     def on_canvas_release(self, x, y, buttons, modifiers):
     #identify the right pixel
         pix_x, pix_y = self.get_canvas_pixel(x, y)
+        print "release at", pix_x, pix_y
 
         if self.should_push_new_action():
             self.push_new_action()
