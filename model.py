@@ -10,10 +10,8 @@ class Tile(pyglet.image.ImageData):
     format = "RGBA"
 
     def __init__(self, tile_size):
-        data = []
-        for pix_num in xrange(tile_size[0] * tile_size[1]):
-            data.append(chr(randint(0,255))+chr(randint(0,255))+chr(randint(0,255))+"\xff")
-        super(Tile, self).__init__(tile_size[0], tile_size[1], self.format, "".join(data))
+        data = "\x00\x00\x00\x00" * (tile_size[0] * tile_size[1])
+        super(Tile, self).__init__(tile_size[0], tile_size[1], self.format, data)
 
         self.drawn_on = False
 
