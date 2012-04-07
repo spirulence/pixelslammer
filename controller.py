@@ -230,7 +230,7 @@ class SlammerCtrl(object):
         self.action_stack.pop()
         for action in self.action_stack:
             action.do(self.updated_model)
-        self.view.canvas.set_canvas(self.updated_model.get_canvas())
+        self.view.canvas.set_canvas(self.updated_model.canvas)
 
     def push_new_action(self):
         self.action_stack.append(self.current_tool(self.current_color))

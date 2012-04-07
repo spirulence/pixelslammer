@@ -33,6 +33,7 @@ class Canvas(pyglet.image.ImageData):
         self.ctypes_data[offset:offset+4] = color
         self.set_data("RGBA", pitch, ctypes.pointer(self.ctypes_data))
 
+    #noinspection PyMethodOverriding
     def __reduce__(self):
         return canvas_unpickler, (self.tile_size, self.canvas_size, list(self.ctypes_data))
 
