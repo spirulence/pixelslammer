@@ -1,16 +1,19 @@
 __author__ = 'cseebach'
 
-from random import randint
 import pickle
+import ctypes
 
 import pyglet
+
+def canvas_unpickler(tile_size, canvas_size, data):
+    c = Canvas(tile_size, canvas_size)
+    c.ctypes_data[:] = data
+    return c
 
 class Canvas(pyglet.image.ImageData):
     """
     Represents a paintable canvas composed of individual tiles.
     """
-
-    input_color_format = "RGBA"
 
     def __init__(self, tile_size, canvas_size):
         self.tile_size = tile_size
@@ -18,21 +21,20 @@ class Canvas(pyglet.image.ImageData):
 
         width = tile_size[0] * canvas_size[0]
         height = tile_size[1] * canvas_size[1]
-        data = "\x00\x00\x00\x00" * (width * height)
-        super(Canvas, self).__init__(width, height, "RGBA", data)
+        #noinspection PyTypeChecker
+        self.ctypes_type = ctypes.c_ubyte * (width * height * 4)
+        #noinspection PyCallingNonCallable
+        self.ctypes_data = self.ctypes_type()
+        super(Canvas, self).__init__(width, height, "RGBA", ctypes.pointer(self.ctypes_data))
 
     def set_pixel(self, x, y, color):
-        cur_pitch = self.pitch
-        cur_format = self.format
-        format_len = len(cur_format)
-        data = list(self.get_data(cur_format, cur_pitch))
+        pitch = self.width * 4
+        offset = (y * pitch) + x * 4
+        self.ctypes_data[offset:offset+4] = color
+        self.set_data("RGBA", pitch, ctypes.pointer(self.ctypes_data))
 
-        c_dict = dict(zip(self.input_color_format, color))
-        new_pixel = [chr(c_dict[c]) for c in cur_format]
-
-        offset = cur_pitch * y + format_len * x
-        data[offset:offset+format_len] = new_pixel
-        self.set_data(cur_format, cur_pitch, "".join(data))
+    def __reduce__(self):
+        return canvas_unpickler, (self.tile_size, self.canvas_size, list(self.ctypes_data))
 
 class SlammerModel(object):
     """
