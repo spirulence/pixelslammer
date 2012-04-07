@@ -26,7 +26,9 @@ class Tile(pyglet.image.ImageData):
         pitch = self.width * 4
         offset = (y * pitch) + x * 4
         self.ctypes_data[offset:offset+4] = color
-        self.set_data("RGBA", pitch, ctypes.pointer(self.ctypes_data))
+
+    def flush_changes(self):
+        self.set_data("RGBA", self.width * 4, ctypes.pointer(self.ctypes_data))
 
     #noinspection PyMethodOverriding
     def __reduce__(self):

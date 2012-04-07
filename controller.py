@@ -52,6 +52,7 @@ class Tool(object):
         """
         Run the tool, with the information it has recieved so far, on the given canvas.
         """
+        canvas.flush_changes()
 
 def plot(canvas, x, y, color):
     """
@@ -123,6 +124,7 @@ class Pencil(Tool):
     def do(self, canvas):
         for x, y in self.to_plot:
             plot(canvas, x, y, self.color)
+        super(Pencil, self).do(canvas)
 
 
 def action_responder(function):
