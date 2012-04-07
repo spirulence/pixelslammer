@@ -121,17 +121,17 @@ class Pencil(Tool):
 
     def __init__(self, color):
         super(Pencil, self).__init__(color)
-        self.to_plot = []
+        self.to_plot = set()
         self.__is_ready = False
 
     def accept_press(self, x, y):
-        self.to_plot.append((x,y))
+        self.to_plot.add((x,y))
 
     def accept_drag(self, start_x, start_y, end_x, end_y):
-        self.to_plot.extend(draw_line(start_x, start_y, end_x, end_y))
+        self.to_plot.update(draw_line(start_x, start_y, end_x, end_y))
 
     def accept_release(self, x, y):
-        self.to_plot.append((x,y))
+        self.to_plot.add((x,y))
         self.__is_ready = True
         return self.is_ready()
 
