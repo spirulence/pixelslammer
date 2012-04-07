@@ -8,6 +8,7 @@ import pyglet
 def tile_unpickler(width, height, data):
     t = Tile(width, height)
     t.ctypes_data[:] = data
+    t.flush_changes()
     return t
 
 class Tile(pyglet.image.ImageData):
