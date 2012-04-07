@@ -52,7 +52,6 @@ class Tool(object):
         """
         Run the tool, with the information it has recieved so far, on the given canvas.
         """
-        canvas.flush_changes()
 
 def plot(canvas, x, y, color):
     """
@@ -124,7 +123,6 @@ class Pencil(Tool):
     def do(self, canvas):
         for x, y in self.to_plot:
             plot(canvas, x, y, self.color)
-        super(Pencil, self).do(canvas)
 
 
 def action_responder(function):
@@ -202,6 +200,7 @@ class SlammerCtrl(object):
         if self.action_incomplete():
             preview_canvas = self.model.canvas.copy()
             self.get_top_action().do(preview_canvas)
+            preview_canvas.flush_changes()
             self.view.canvas.draw_canvas(preview_canvas)
         else:
             self.view.canvas.draw_canvas(self.model.canvas)
@@ -211,6 +210,7 @@ class SlammerCtrl(object):
         self.action_stack.pop()
         for action in self.action_stack:
             action.do(self.model.canvas)
+        self.model.canvas.flush_changes()
         self.view.canvas.set_canvas(self.model.canvas)
 
     def push_new_action(self):
@@ -223,3 +223,4 @@ class SlammerCtrl(object):
     def run_action_if_ready(self):
         if self.get_top_action().is_ready():
             self.get_top_action().do(self.model.canvas)
+            self.model.canvas.flush_changes()
