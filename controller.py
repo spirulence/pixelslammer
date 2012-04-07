@@ -2,6 +2,8 @@ __author__ = 'cseebach'
 
 import pyglet.window.key as keys
 
+from model import Canvas
+
 class Tool(object):
     """
     A base class for each kind of tool available in Pixel Slammer.
@@ -32,7 +34,7 @@ class Tool(object):
 
     def accept_drag(self, start_x, start_y, end_x, end_y):
         """
-        Send a drag to this tool. Returns the result of is_ready after this
+        Send a mouse drag to this tool. Returns the result of is_ready after this
         call is executed.
         """
 
@@ -48,18 +50,23 @@ class Tool(object):
         called.
         """
 
+    def get_preview(self):
+        """
+        Return a preview of the modifications this tool will make.
+        """
+
     def do(self, model):
         """
         Run the action associated with this tool on the specified model. Throws
         MoreInputNeeded if more input is needed.
         """
 
-def plot(model, x, y, color):
+def plot(canvas, x, y, color):
     """
     Change the color of a single pixel on the model's canvas.
     """
-    canvas_w, canvas_h = model.canvas.get_size()
-    tile_w, tile_h = model.canvas.get_tile_size()
+    canvas_w, canvas_h = canvas.get_size()
+    tile_w, tile_h = canvas.get_tile_size()
 
     max_x = canvas_w * tile_w
     max_y = canvas_h * tile_h
@@ -69,7 +76,7 @@ def plot(model, x, y, color):
     tile_x, tile_y = x // tile_w, y // tile_h
     tile_pix_x, tile_pix_y = x % tile_w, y % tile_h
 
-    tile = model.canvas.get_tile(tile_x, tile_y)
+    tile = canvas.get_tile(tile_x, tile_y)
     tile.set_pixel(tile_pix_x, tile_pix_y, color)
 
 def draw_line(start_x, start_y, end_x, end_y):
@@ -128,6 +135,14 @@ class Pencil(Tool):
         self.__is_ready = True
         return self.is_ready()
 
+    def get_preview(self):
+        #determine max x and y
+        x, y = zip(*self.to_plot)
+        canvas = Canvas((max(x), max(y)),(1,1))
+        for x, y, in self.to_plot:
+            plot(canvas, x, y, self.color)
+        return canvas
+
     def is_ready(self):
         return self.__is_ready
 
@@ -137,7 +152,7 @@ class Pencil(Tool):
             raise Tool.MoreInputNeeded, msg
         else:
             for x, y in self.to_plot:
-                plot(model, x, y, self.color)
+                plot(model.canvas, x, y, self.color)
 
 class SlammerCtrl(object):
     """
@@ -152,7 +167,7 @@ class SlammerCtrl(object):
         self.updated_model = model.copy()
         self.action_stack = []
         self.current_tool = Pencil
-        self.current_color = (0,0,0,255)
+        self.current_color = (0,50,0,255)
 
         self.view = view
         self.view.push_handlers(self)
@@ -184,6 +199,7 @@ class SlammerCtrl(object):
         if self.should_push_new_action():
             self.push_new_action()
         self.get_top_action().accept_press(pix_x, pix_y)
+        self.view.canvas.show_preview(self.get_top_action().get_preview())
         self.run_action_if_ready()
 
     def on_canvas_drag(self, start_x_ratio, start_y_ratio, end_x_ratio,
@@ -200,6 +216,7 @@ class SlammerCtrl(object):
         if self.should_push_new_action():
             self.push_new_action()
         self.get_top_action().accept_drag(start_x, start_y, end_x, end_y)
+        self.view.canvas.show_preview(self.get_top_action().get_preview())
         self.run_action_if_ready()
 
     def on_canvas_release(self, x, y, buttons, modifiers):
@@ -209,6 +226,7 @@ class SlammerCtrl(object):
         if self.should_push_new_action():
             self.push_new_action()
         self.get_top_action().accept_release(pix_x, pix_y)
+        self.view.canvas.show_preview(self.get_top_action().get_preview())
         self.run_action_if_ready()
 
     def on_key_press(self, key, modifiers):
@@ -232,3 +250,4 @@ class SlammerCtrl(object):
     def run_action_if_ready(self):
         if self.get_top_action().is_ready():
             self.get_top_action().do(self.updated_model)
+            self.view.canvas.hide_preview()

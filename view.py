@@ -21,6 +21,7 @@ class CanvasView(SelfRegistrant):
         super(CanvasView, self).__init__(*args, **kwargs)
 
         self.scale = kwargs.get("scale", 6)
+        self.preview = None
 
     def set_canvas(self, canvas):
         self.canvas = canvas
@@ -33,21 +34,25 @@ class CanvasView(SelfRegistrant):
         new_h = canvas_h * tile_h * self.scale
         self.set_size(new_w, new_h)
 
-    def on_draw(self):
-        self.clear()
-
-        canvas_w, canvas_h = self.canvas.get_size()
-        tile_w, tile_h = self.canvas.get_tile_size()
+    def draw_canvas(self, canvas):
+        canvas_w, canvas_h = canvas.get_size()
+        tile_w, tile_h = canvas.get_tile_size()
         scaled_w, scaled_h = tile_w * self.scale, tile_h * self.scale
 
         for y in xrange(canvas_h):
             for x in xrange(canvas_w):
-                texture = self.canvas.get_tile(x,y).get_texture()
+                texture = canvas.get_tile(x,y).get_texture()
                 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
                                    gl.GL_NEAREST)
                 texture.width = scaled_w
                 texture.height = scaled_h
                 texture.blit(x * scaled_w, y * scaled_h)
+
+    def on_draw(self):
+        self.clear()
+        self.draw_canvas(self.canvas)
+        if self.preview:
+            self.draw_canvas(self.preview)
 
     def on_mouse_press(self, x, y, buttons, modifiers):
         window_w, window_h = self.get_size()
@@ -71,6 +76,12 @@ class CanvasView(SelfRegistrant):
         y_ratio = float(y)/window_h
         self.dispatch_event("on_canvas_release", x_ratio, y_ratio, buttons,
                             modifiers)
+
+    def show_preview(self, canvas):
+        self.preview = canvas
+
+    def hide_preview(self):
+        self.preview = None
 
 class SlammerView(object):
     """
