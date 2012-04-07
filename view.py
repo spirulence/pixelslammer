@@ -18,7 +18,6 @@ class CanvasView(SelfRegistrant):
     dispatches = ["on_canvas_press", "on_canvas_drag", "on_canvas_release"]
 
     def __init__(self, *args, **kwargs):
-        #kwargs.setdefault("visible", False)
         super(CanvasView, self).__init__(*args, **kwargs)
 
         self.scale = kwargs.get("scale", 6)
