@@ -22,9 +22,9 @@ class Canvas(pyglet.image.ImageData):
         width = tile_size[0] * canvas_size[0]
         height = tile_size[1] * canvas_size[1]
         #noinspection PyTypeChecker
-        self.ctypes_type = ctypes.c_ubyte * (width * height * 4)
+        ctypes_type = ctypes.c_ubyte * (width * height * 4)
         #noinspection PyCallingNonCallable
-        self.ctypes_data = self.ctypes_type()
+        self.ctypes_data = ctypes_type()
         super(Canvas, self).__init__(width, height, "RGBA", ctypes.pointer(self.ctypes_data))
 
     def set_pixel(self, x, y, color):
