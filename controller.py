@@ -8,7 +8,8 @@ class Tool(object):
         Create the tool you want to use.
 
         Send it input until the input accepting methods return an object that
-        evaluates to False.
+        evaluates to False. Alternatively, check is_ready to determine when
+        enough input has been sent.
 
         Call the do() method of the created tool. This can be done multiple
         times if you like. (Handy for undo/redo functionality)
@@ -23,14 +24,20 @@ class Tool(object):
 
     def accept_click(self, x, y):
         """
-        Send a click to this tool. This method returns True if more input is
-        needed.
+        Send a click to this tool. Returns the result of is_ready after this
+        call is executed.
         """
 
     def accept_drag(self, start_x, start_y, end_x, end_y):
         """
-        Send a drag to this tool. This method returns True if more input is
-        needed.
+        Send a drag to this tool. Returns the result of is_ready after this
+        call is executed.
+        """
+
+    def is_ready(self):
+        """
+        Returns True if this tool needs no more information to have do() be
+        called.
         """
 
     def do(self, model):
@@ -94,21 +101,29 @@ class Pencil(Tool):
     def __init__(self, color):
         super(Pencil, self).__init__(color)
         self.style = None
+        self.__is_ready = False
 
     def accept_click(self, x, y):
         self.style = "point"
         self.x = x
         self.y = y
+        self.__is_ready = True
+        return self.is_ready()
 
     def accept_drag(self, start_x, start_y, end_x, end_y):
         self.style = "line"
         self.start_x, self.start_y = start_x, start_y
         self.end_x, self.end_y = end_x, end_y
+        self.__is_ready = True
+        return self.is_ready()
+
+    def is_ready(self):
+        return self.__is_ready
 
     def do(self, model):
         if not self.style:
-            raise (Tool.MoreInputNeeded,
-                   "Pencil needs a click or a drag before do()")
+            msg = "Pencil needs a click or a drag before do()"
+            raise Tool.MoreInputNeeded, msg
         elif self.style == "point":
             plot(model, self.x, self.y, self.color)
         elif self.style == "line":
@@ -125,13 +140,14 @@ class SlammerCtrl(object):
         Create a new PixelSlammer controller. Supply the model and the view.
         """
         self.model = model
+        self.updated_model = model.copy()
+        self.action_stack = []
+        self.current_tool = Pencil
+        self.current_color = (0,0,0,255)
+
         self.view = view
         self.view.push_handlers(self)
-        self.view.canvas.set_canvas(model.get_canvas())
-
-        self.current_tool = Pencil
-        self.current_tool_instance = None
-        self.current_color = (0,0,0,255)
+        self.view.canvas.set_canvas(self.updated_model.get_canvas())
 
     def get_canvas_pixel(self, x_ratio, y_ratio):
         """
@@ -145,6 +161,9 @@ class SlammerCtrl(object):
 
         return pix_x, pix_y
 
+    def should_push_new_action(self):
+        return not self.action_stack or self.action_stack[-1].is_ready()
+
     def on_canvas_click(self, x, y, buttons, modifiers):
         """
         When a spot on the canvas is clicked, this method is notified with x
@@ -153,13 +172,10 @@ class SlammerCtrl(object):
         #identify the right pixel
         pix_x, pix_y = self.get_canvas_pixel(x, y)
 
-        if not self.current_tool_instance:
-            self.current_tool_instance = self.current_tool(self.current_color)
-        more_input = self.current_tool_instance.accept_click(pix_x, pix_y)
-        if not more_input:
-            self.current_tool_instance.do(self.model)
-            self.current_tool_instance = None
-
+        if self.should_push_new_action():
+            self.push_new_action()
+        self.get_top_action().accept_click(pix_x, pix_y)
+        self.run_action_if_ready()
 
     def on_canvas_drag(self, start_x_ratio, start_y_ratio, end_x_ratio,
                        end_y_ratio, buttons, modifiers):
@@ -168,14 +184,21 @@ class SlammerCtrl(object):
         notified with x and y floating point coordinates for both start and
         end positions.
         """
-
+        #identify start and end pixels
         start_x, start_y = self.get_canvas_pixel(start_x_ratio, start_y_ratio)
         end_x, end_y = self.get_canvas_pixel(end_x_ratio, end_y_ratio)
 
-        if not self.current_tool_instance:
-            self.current_tool_instance = self.current_tool(self.current_color)
-        more_input = self.current_tool_instance.accept_drag(start_x, start_y,
-                                                            end_x, end_y)
-        if not more_input:
-            self.current_tool_instance.do(self.model)
-            self.current_tool_instance = None
+        if self.should_push_new_action():
+            self.push_new_action()
+        self.get_top_action().accept_drag(start_x, start_y, end_x, end_y)
+        self.run_action_if_ready()
+
+    def push_new_action(self):
+        self.action_stack.append(self.current_tool(self.current_color))
+
+    def get_top_action(self):
+        return self.action_stack[-1]
+
+    def run_action_if_ready(self):
+        if self.get_top_action().is_ready():
+            self.get_top_action().do(self.updated_model)
