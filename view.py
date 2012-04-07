@@ -81,7 +81,7 @@ class SlammerView(object):
     """
 
     def __init__(self):
-        self.canvas = CanvasView()
+        self.canvas = CanvasView(visible=False)
 
         gl.glEnable(gl.GL_BLEND)
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)

@@ -162,6 +162,7 @@ class SlammerCtrl(object):
         self.view = view
         self.view.push_handlers(self)
         self.view.canvas.set_canvas(self.updated_model.canvas)
+        self.view.canvas.set_visible()
 
     def get_canvas_pixel(self, x_ratio, y_ratio):
         """
