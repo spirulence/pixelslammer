@@ -134,9 +134,6 @@ def action_responder(function):
 
         function(self, *args, **kwargs)
 
-        preview_canvas = self.model.canvas.copy()
-        self.get_top_action().do(preview_canvas)
-        self.view.canvas.show_preview(preview_canvas)
         self.run_action_if_ready()
 
     return wrapped
