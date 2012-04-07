@@ -2,8 +2,6 @@ __author__ = 'cseebach'
 
 import pyglet.window.key as keys
 
-from model import Canvas
-
 class Tool(object):
     """
     A base class for each kind of tool available in Pixel Slammer.
@@ -50,15 +48,9 @@ class Tool(object):
         called.
         """
 
-    def get_preview(self):
+    def do(self, canvas):
         """
-        Return a preview of the modifications this tool will make.
-        """
-
-    def do(self, model):
-        """
-        Run the action associated with this tool on the specified model. Throws
-        MoreInputNeeded if more input is needed.
+        Run the tool, with the information it has recieved so far, on the given canvas.
         """
 
 def plot(canvas, x, y, color):
@@ -125,24 +117,28 @@ class Pencil(Tool):
         self.__is_ready = True
         return self.is_ready()
 
-    def get_preview(self):
-        #determine max x and y
-        x, y = zip(*self.to_plot)
-        canvas = Canvas((max(x)+1, max(y)+1),(1,1))
-        for x, y, in self.to_plot:
-            plot(canvas, x, y, self.color)
-        return canvas
-
     def is_ready(self):
         return self.__is_ready
 
-    def do(self, model):
-        if not self.is_ready():
-            msg = "Pencil needs a mouse release before do()"
-            raise Tool.MoreInputNeeded, msg
-        else:
-            for x, y in self.to_plot:
-                plot(model.canvas, x, y, self.color)
+    def do(self, canvas):
+        for x, y in self.to_plot:
+            plot(canvas, x, y, self.color)
+
+
+def action_responder(function):
+    def wrapped(self, *args, **kwargs):
+        if self.should_push_new_action():
+            self.push_new_action()
+
+        function(self, *args, **kwargs)
+
+        preview_canvas = self.model.canvas.copy()
+        self.get_top_action().do(preview_canvas)
+        self.view.canvas.show_preview(preview_canvas)
+        self.run_action_if_ready()
+
+    return wrapped
+
 
 class SlammerCtrl(object):
     """
@@ -153,15 +149,15 @@ class SlammerCtrl(object):
         """
         Create a new PixelSlammer controller. Supply the model and the view.
         """
-        self.model = model
-        self.updated_model = model.copy()
+        self.base_model = model
+        self.model = model.copy()
         self.action_stack = []
         self.current_tool = Pencil
         self.current_color = (0,255,0,255)
 
         self.view = view
         self.view.push_handlers(self)
-        self.view.canvas.set_canvas(self.updated_model.canvas)
+        self.view.canvas.set_canvas(self.model.canvas)
         self.view.canvas.set_visible()
 
     def get_canvas_pixel(self, x_ratio, y_ratio):
@@ -178,6 +174,7 @@ class SlammerCtrl(object):
     def should_push_new_action(self):
         return not self.action_stack or self.action_stack[-1].is_ready()
 
+    @action_responder
     def on_canvas_press(self, x, y, buttons, modifiers):
         """
         When a spot on the canvas is clicked, this method is notified with x
@@ -186,13 +183,9 @@ class SlammerCtrl(object):
         #identify the right pixel
         pix_x, pix_y = self.get_canvas_pixel(x, y)
         #print "press at", pix_x, pix_y
-
-        if self.should_push_new_action():
-            self.push_new_action()
         self.get_top_action().accept_press(pix_x, pix_y)
-        self.view.canvas.show_preview(self.get_top_action().get_preview())
-        self.run_action_if_ready()
 
+    @action_responder
     def on_canvas_drag(self, start_x_ratio, start_y_ratio, end_x_ratio,
                        end_y_ratio, buttons, modifiers):
         """
@@ -204,34 +197,25 @@ class SlammerCtrl(object):
         start_x, start_y = self.get_canvas_pixel(start_x_ratio, start_y_ratio)
         end_x, end_y = self.get_canvas_pixel(end_x_ratio, end_y_ratio)
         #print "drag from", start_x, start_y, "to", end_x, end_y
-
-        if self.should_push_new_action():
-            self.push_new_action()
         self.get_top_action().accept_drag(start_x, start_y, end_x, end_y)
-        self.view.canvas.show_preview(self.get_top_action().get_preview())
-        self.run_action_if_ready()
 
+    @action_responder
     def on_canvas_release(self, x, y, buttons, modifiers):
         #identify the right pixel
         pix_x, pix_y = self.get_canvas_pixel(x, y)
         #print "release at", pix_x, pix_y
-
-        if self.should_push_new_action():
-            self.push_new_action()
         self.get_top_action().accept_release(pix_x, pix_y)
-        self.view.canvas.show_preview(self.get_top_action().get_preview())
-        self.run_action_if_ready()
 
     def on_key_press(self, key, modifiers):
         if key == keys.Z and keys.MOD_CTRL & modifiers:
             self.undo()
 
     def undo(self):
-        self.updated_model = self.model.copy()
+        self.model = self.base_model.copy()
         self.action_stack.pop()
         for action in self.action_stack:
-            action.do(self.updated_model)
-        self.view.canvas.set_canvas(self.updated_model.canvas)
+            action.do(self.model.canvas)
+        self.view.canvas.set_canvas(self.model.canvas)
 
     def push_new_action(self):
         self.action_stack.append(self.current_tool(self.current_color))
@@ -242,5 +226,5 @@ class SlammerCtrl(object):
 
     def run_action_if_ready(self):
         if self.get_top_action().is_ready():
-            self.get_top_action().do(self.updated_model)
+            self.get_top_action().do(self.model.canvas)
             self.view.canvas.hide_preview()

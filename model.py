@@ -5,27 +5,22 @@ import ctypes
 
 import pyglet
 
-def canvas_unpickler(tile_size, canvas_size, data):
-    c = Canvas(tile_size, canvas_size)
-    c.ctypes_data[:] = data
-    return c
+def tile_unpickler(width, height, data):
+    t = Tile(width, height)
+    t.ctypes_data[:] = data
+    return t
 
-class Canvas(pyglet.image.ImageData):
+class Tile(pyglet.image.ImageData):
     """
-    Represents a paintable canvas composed of individual tiles.
+    Represents a drawing surface with pixel access.
     """
 
-    def __init__(self, tile_size, canvas_size):
-        self.tile_size = tile_size
-        self.canvas_size = canvas_size
-
-        width = tile_size[0] * canvas_size[0]
-        height = tile_size[1] * canvas_size[1]
+    def __init__(self, width, height):
         #noinspection PyTypeChecker
         ctypes_type = ctypes.c_ubyte * (width * height * 4)
         #noinspection PyCallingNonCallable
         self.ctypes_data = ctypes_type()
-        super(Canvas, self).__init__(width, height, "RGBA", ctypes.pointer(self.ctypes_data))
+        super(Tile, self).__init__(width, height, "RGBA", ctypes.pointer(self.ctypes_data))
 
     def set_pixel(self, x, y, color):
         pitch = self.width * 4
@@ -35,7 +30,12 @@ class Canvas(pyglet.image.ImageData):
 
     #noinspection PyMethodOverriding
     def __reduce__(self):
-        return canvas_unpickler, (self.tile_size, self.canvas_size, list(self.ctypes_data))
+        return tile_unpickler, (self.width, self.height, list(self.ctypes_data))
+
+    def copy(self):
+        t = Tile(self.width, self.height)
+        t.ctypes_data[:] = self.ctypes_data
+        return t
 
 class SlammerModel(object):
     """
@@ -43,7 +43,8 @@ class SlammerModel(object):
     """
 
     def __init__(self, tile_size=(16,16), canvas_size=(4,4)):
-        self.canvas = Canvas(tile_size, canvas_size)
+        self.canvas = Tile(tile_size[0]*canvas_size[0],
+                           tile_size[1]*canvas_size[1])
 
     def copy(self):
         return pickle.loads(pickle.dumps(self))
