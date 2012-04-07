@@ -174,17 +174,17 @@ class SlammerCtrl(object):
     def should_push_new_action(self):
         return not self.action_stack or self.action_stack[-1].is_ready()
 
+    def downscale_coords(self, x, y):
+        scale = self.view.canvas.scale
+        return x // scale, y // scale
+
     @action_responder
     def on_mouse_press(self, x, y, buttons, modifiers):
         """
         When a spot on the canvas is clicked, this method is notified with x
         and y floating point coordinates.
         """
-        #identify the right pixel
-        scale = self.view.canvas.scale
-        pix_x, pix_y = x//scale, y//scale
-        #print "press at", pix_x, pix_y
-        self.get_top_action().accept_press(pix_x, pix_y)
+        self.get_top_action().accept_press(*self.downscale_coords(x, y))
 
     @action_responder
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
@@ -193,20 +193,14 @@ class SlammerCtrl(object):
         notified with x and y floating point coordinates for both start and
         end positions.
         """
-        #identify start and end pixels
-        scale = self.view.canvas.scale
-        start_x, start_y = (x-dx)//scale, (y-dy)//scale
-        end_x, end_y = x//scale, y//scale
         #print "drag from", start_x, start_y, "to", end_x, end_y
+        start_x, start_y = self.downscale_coords(x, y)
+        end_x, end_y = self.downscale_coords(x-dx, y-dy)
         self.get_top_action().accept_drag(start_x, start_y, end_x, end_y)
 
     @action_responder
     def on_mouse_release(self, x, y, buttons, modifiers):
-        #identify the right pixel
-        scale = self.view.canvas.scale
-        pix_x, pix_y = x//scale, y//scale
-        #print "release at", pix_x, pix_y
-        self.get_top_action().accept_release(pix_x, pix_y)
+        self.get_top_action().accept_release(*self.downscale_coords(x, y))
 
     def on_key_press(self, key, modifiers):
         if key == keys.Z and keys.MOD_CTRL & modifiers:
