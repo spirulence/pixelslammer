@@ -195,11 +195,17 @@ class SlammerCtrl(object):
         if key == keys.Z and keys.MOD_CTRL & modifiers:
             self.undo()
 
+    def action_incomplete(self):
+        return self.action_stack and not self.get_top_action().is_ready()
+
     def on_draw(self):
         self.view.canvas.clear()
-        self.view.canvas.draw_canvas(self.model.canvas)
-        if self.view.canvas.preview:
-            self.view.canvas.draw_canvas(self.view.canvas.preview)
+        if self.action_incomplete():
+            preview_canvas = self.model.canvas.copy()
+            self.get_top_action().do(preview_canvas)
+            self.view.canvas.draw_canvas(preview_canvas)
+        else:
+            self.view.canvas.draw_canvas(self.model.canvas)
 
     def undo(self):
         self.model = self.base_model.copy()
