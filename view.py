@@ -15,7 +15,7 @@ class SelfRegistrant(pyglet.window.Window):
 
 class CanvasView(SelfRegistrant):
 
-    dispatches = ["on_canvas_click", "on_canvas_drag"]
+    dispatches = ["on_canvas_press", "on_canvas_drag", "on_canvas_release"]
 
     def __init__(self, *args, **kwargs):
         #kwargs.setdefault("visible", False)
@@ -54,7 +54,7 @@ class CanvasView(SelfRegistrant):
         window_w, window_h = self.get_size()
         x_ratio = float(x)/window_w
         y_ratio = float(y)/window_h
-        self.dispatch_event("on_canvas_click", x_ratio, y_ratio, buttons,
+        self.dispatch_event("on_canvas_press", x_ratio, y_ratio, buttons,
                             modifiers)
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
@@ -65,6 +65,13 @@ class CanvasView(SelfRegistrant):
         end_y = float(y)/window_h
         self.dispatch_event("on_canvas_drag", start_x, start_y, end_x, end_y,
                             buttons, modifiers)
+
+    def on_mouse_release(self, x, y, buttons, modifiers):
+        window_w, window_h = self.get_size()
+        x_ratio = float(x)/window_w
+        y_ratio = float(y)/window_h
+        self.dispatch_event("on_canvas_release", x_ratio, y_ratio, buttons,
+                            modifiers)
 
 class SlammerView(object):
     """

@@ -24,15 +24,21 @@ class Tool(object):
         """Create a new Tool, and give it the color it should apply."""
         self.color = color
 
-    def accept_click(self, x, y):
+    def accept_press(self, x, y):
         """
-        Send a click to this tool. Returns the result of is_ready after this
+        Send a mouse press to this tool. Returns the result of is_ready after this
         call is executed.
         """
 
     def accept_drag(self, start_x, start_y, end_x, end_y):
         """
         Send a drag to this tool. Returns the result of is_ready after this
+        call is executed.
+        """
+
+    def accept_release(self, x, y):
+        """
+        Send a mouse release to this tool. Returns the result of is_ready after this
         call is executed.
         """
 
@@ -66,9 +72,11 @@ def plot(model, x, y, color):
     tile = model.canvas.get_tile(tile_x, tile_y)
     tile.set_pixel(tile_pix_x, tile_pix_y, color)
 
-def draw_line(model, start_x, start_y, end_x, end_y, color):
+def draw_line(start_x, start_y, end_x, end_y):
     """
-    Draw a line on the model's canvas in the specified color.
+    Return a list of the coordinates that make up a line.
+
+    Implements the Bresenham line algorithm.
     """
     steep = abs(end_y - start_y) > abs(end_x - start_x)
     if steep:
@@ -85,15 +93,19 @@ def draw_line(model, start_x, start_y, end_x, end_y, color):
         y_step = 1
     else:
         y_step = -1
+
+    to_plot = []
     for x in xrange(start_x, end_x+1):
         if steep:
-            plot(model, y, x, color)
+            to_plot.append((y, x))
         else:
-            plot(model, x, y, color)
+            to_plot.append((x, y))
         error -= delta_y
         if error < 0:
             y += y_step
             error += delta_x
+
+    return to_plot
 
 class Pencil(Tool):
     """
@@ -102,20 +114,17 @@ class Pencil(Tool):
 
     def __init__(self, color):
         super(Pencil, self).__init__(color)
-        self.style = None
+        self.to_plot = []
         self.__is_ready = False
 
-    def accept_click(self, x, y):
-        self.style = "point"
-        self.x = x
-        self.y = y
-        self.__is_ready = True
-        return self.is_ready()
+    def accept_press(self, x, y):
+        self.to_plot.append((x,y))
 
     def accept_drag(self, start_x, start_y, end_x, end_y):
-        self.style = "line"
-        self.start_x, self.start_y = start_x, start_y
-        self.end_x, self.end_y = end_x, end_y
+        self.to_plot.extend(draw_line(start_x, start_y, end_x, end_y))
+
+    def accept_release(self, x, y):
+        self.to_plot.append((x,y))
         self.__is_ready = True
         return self.is_ready()
 
@@ -123,14 +132,12 @@ class Pencil(Tool):
         return self.__is_ready
 
     def do(self, model):
-        if not self.style:
-            msg = "Pencil needs a click or a drag before do()"
+        if not self.is_ready():
+            msg = "Pencil needs a mouse release before do()"
             raise Tool.MoreInputNeeded, msg
-        elif self.style == "point":
-            plot(model, self.x, self.y, self.color)
-        elif self.style == "line":
-            draw_line(model, self.start_x, self.start_y, self.end_x,
-                      self.end_y, self.color)
+        else:
+            for x, y in self.to_plot:
+                plot(model, x, y, self.color)
 
 class SlammerCtrl(object):
     """
@@ -166,7 +173,7 @@ class SlammerCtrl(object):
     def should_push_new_action(self):
         return not self.action_stack or self.action_stack[-1].is_ready()
 
-    def on_canvas_click(self, x, y, buttons, modifiers):
+    def on_canvas_press(self, x, y, buttons, modifiers):
         """
         When a spot on the canvas is clicked, this method is notified with x
         and y floating point coordinates.
@@ -176,7 +183,7 @@ class SlammerCtrl(object):
 
         if self.should_push_new_action():
             self.push_new_action()
-        self.get_top_action().accept_click(pix_x, pix_y)
+        self.get_top_action().accept_press(pix_x, pix_y)
         self.run_action_if_ready()
 
     def on_canvas_drag(self, start_x_ratio, start_y_ratio, end_x_ratio,
@@ -193,6 +200,15 @@ class SlammerCtrl(object):
         if self.should_push_new_action():
             self.push_new_action()
         self.get_top_action().accept_drag(start_x, start_y, end_x, end_y)
+        self.run_action_if_ready()
+
+    def on_canvas_release(self, x, y, buttons, modifiers):
+    #identify the right pixel
+        pix_x, pix_y = self.get_canvas_pixel(x, y)
+
+        if self.should_push_new_action():
+            self.push_new_action()
+        self.get_top_action().accept_release(pix_x, pix_y)
         self.run_action_if_ready()
 
     def on_key_press(self, key, modifiers):
