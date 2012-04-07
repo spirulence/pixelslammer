@@ -1,5 +1,7 @@
 __author__ = 'cseebach'
 
+import pyglet.window.key as keys
+
 class Tool(object):
     """
     A base class for each kind of tool available in Pixel Slammer.
@@ -193,8 +195,20 @@ class SlammerCtrl(object):
         self.get_top_action().accept_drag(start_x, start_y, end_x, end_y)
         self.run_action_if_ready()
 
+    def on_key_press(self, key, modifiers):
+        if key == keys.Z and keys.MOD_CTRL & modifiers:
+            self.undo()
+
+    def undo(self):
+        self.updated_model = self.model.copy()
+        self.action_stack.pop()
+        for action in self.action_stack:
+            action.do(self.updated_model)
+        self.view.canvas.set_canvas(self.updated_model.get_canvas())
+
     def push_new_action(self):
         self.action_stack.append(self.current_tool(self.current_color))
+        print len(self.action_stack)
 
     def get_top_action(self):
         return self.action_stack[-1]
