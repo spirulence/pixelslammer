@@ -16,10 +16,8 @@ class Tile(pyglet.image.ImageData):
     """
 
     def __init__(self, width, height):
-        #noinspection PyTypeChecker
-        ctypes_type = ctypes.c_ubyte * (width * height * 4)
-        #noinspection PyCallingNonCallable
-        self.ctypes_data = ctypes_type()
+        #noinspection PyCallingNonCallable,PyTypeChecker
+        self.ctypes_data = (ctypes.c_ubyte * (width * height * 4))()
         super(Tile, self).__init__(width, height, "RGBA", ctypes.pointer(self.ctypes_data))
 
     def set_pixel(self, x, y, color):
