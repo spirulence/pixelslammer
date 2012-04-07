@@ -160,17 +160,6 @@ class SlammerCtrl(object):
         self.view.canvas.set_canvas(self.model.canvas)
         self.view.canvas.set_visible()
 
-    def get_canvas_pixel(self, x_ratio, y_ratio):
-        """
-        Given floating point coordinates between (0.0, 0.0) and (1.0, 1.0),
-        find the integer coordinates that correspond.
-        """
-        canvas_w, canvas_h = self.model.canvas.width, self.model.canvas.height
-        pix_x = int(x_ratio * canvas_w)
-        pix_y = int(y_ratio * canvas_h)
-
-        return pix_x, pix_y
-
     def should_push_new_action(self):
         return not self.action_stack or self.action_stack[-1].is_ready()
 
