@@ -28,12 +28,6 @@ class CanvasView(pyglet.window.Window):
         texture.height = canvas.height * self.scale
         texture.blit(0, 0)
 
-    def show_preview(self, canvas):
-        self.preview = canvas
-
-    def hide_preview(self):
-        self.preview = None
-
 class SlammerView(object):
     """
     The User Interface to the Pixel Slammer data.

@@ -223,4 +223,3 @@ class SlammerCtrl(object):
     def run_action_if_ready(self):
         if self.get_top_action().is_ready():
             self.get_top_action().do(self.model.canvas)
-            self.view.canvas.hide_preview()
