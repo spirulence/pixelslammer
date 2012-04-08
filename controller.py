@@ -124,8 +124,72 @@ class Pencil(Tool):
         for x, y in self.to_plot:
             plot(canvas, x, y, self.color)
 
+class Eraser(Tool):
+    """
+    Erase some pixels.
+    """
+
+class Line(Tool):
+    """
+    Draw a line.
+    """
+
+class Circle(Tool):
+    """
+    Draw a circle.
+    """
+
+class HollowCircle(Tool):
+    """
+    Draw a hollow circle.
+    """
+
+class Rectangle(Tool):
+    """
+    Draw a rectangle.
+    """
+
+class HollowRectangle(Tool):
+    """
+    Draw a hollow rectangle.
+    """
+
+class FloodFill(Tool):
+    """
+    Fill the areas adjacent to a selected pixel that are also that pixel's
+    color in a different color.
+    """
+
+class KillEraser(Tool):
+    """
+    Erase an entire tile.
+    """
+
+class EyeDropper(Tool):
+    """
+    Pick a current color from one already on the canvas.
+    """
+
+class TilePlacer(Tool):
+    """
+    Place a tile from the tile list into a place on the canvas.
+    """
+
+class GlobalColorReplace(Tool):
+    """
+    Replace one color with another across the whole canvas.
+    """
+
+class LocalColorReplace(Tool):
+    """
+
+    """
 
 def action_responder(function):
+    """
+    Use this decorator to have a function automatically push a new action, run
+    the decorated function, and then run the action if it is complete.
+    """
     def wrapped(self, *args, **kwargs):
         if self.should_push_new_action():
             self.push_new_action()
