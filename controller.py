@@ -185,7 +185,6 @@ class Circle(Tool):
     Draw a circle.
     """
 
-
 class HollowCircle(Tool):
     """
     Draw a hollow circle.
@@ -229,7 +228,7 @@ class GlobalColorReplace(Tool):
 
 class LocalColorReplace(Tool):
     """
-
+    Replace one color with another across one tile.
     """
 
 class SlammerCtrl(object):
