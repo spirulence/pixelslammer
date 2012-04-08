@@ -319,7 +319,6 @@ class SlammerCtrl(object):
             tool = self.left_tool
             color = self.left_color
         else:
-            print "pushing right"
             tool = self.right_tool
             color = self.right_color
 
