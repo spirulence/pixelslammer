@@ -28,6 +28,12 @@ class CanvasView(pyglet.window.Window):
         texture.height = canvas.height * self.scale
         texture.blit(0, 0)
 
+class ToolboxView(pyglet.window.Window):
+    """
+    A window that holds all the tools in the toolbox.
+    """
+
+
 class SlammerView(object):
     """
     The User Interface to the Pixel Slammer data.
