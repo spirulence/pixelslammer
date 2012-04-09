@@ -1,8 +1,8 @@
+from math import sqrt
 import pyglet
+import pyglet.window.key as keys
 
 __author__ = 'cseebach'
-
-import pyglet.window.key as keys
 
 class Tool(object):
     """
@@ -65,8 +65,8 @@ class Tool(object):
 
     def is_ready(self):
         """
-        Returns True if this tool needs no more information to have do() be
-        called.
+        Returns True if this tool does not need any more information to form a
+        complete call.
         """
         return self._is_ready
 
@@ -74,9 +74,6 @@ class Tool(object):
         """
         Run the tool, with the information it has recieved so far, on the given canvas.
         """
-
-
-
 
 def plot(canvas, x, y, color):
     """
@@ -86,7 +83,7 @@ def plot(canvas, x, y, color):
         return
     canvas.set_pixel(x, y, color)
 
-def draw_line(start_x, start_y, end_x, end_y):
+def raster_line(start_x, start_y, end_x, end_y):
     """
     Return a list of the coordinates that make up a line.
 
@@ -134,7 +131,7 @@ class Pencil(Tool):
         self.to_plot.add((x,y))
 
     def _accept_drag(self, start_x, start_y, end_x, end_y):
-        self.to_plot.update(draw_line(start_x, start_y, end_x, end_y))
+        self.to_plot.update(raster_line(start_x, start_y, end_x, end_y))
 
     def _accept_release(self, x, y):
         self.to_plot.add((x,y))
@@ -153,14 +150,14 @@ class Eraser(Pencil):
     def __init__(self, color):
         super(Eraser, self).__init__((0,0,0,0))
 
-
-class Line(Tool):
+class DragTool(Tool):
     """
-    Draw a line.
+    A tool that accepts only one click, drag, and release before becoming
+    ready.
     """
 
     def __init__(self, color):
-        super(Line, self).__init__(color)
+        super(DragTool, self).__init__(color)
         self.start_x, self.start_y = None, None
         self.end_x, self.end_y = None, None
 
@@ -174,21 +171,87 @@ class Line(Tool):
         self.end_x, self.end_y = x, y
         self._is_ready = True
 
+class Line(DragTool):
+    """
+    Draw a line.
+    """
+
     def do(self, canvas):
         if self.start_x and self.end_x:
-            for x, y in draw_line(self.start_x, self.start_y, self.end_x,
-                                  self.end_y):
+            for x, y in raster_line(self.start_x, self.start_y, self.end_x,
+                                    self.end_y):
                 plot(canvas, x, y, self.color)
 
-class Circle(Tool):
+def raster_4_ellipse_points(c_x, c_y, x, y):
     """
-    Draw a circle.
+    Given a center point and x and y coordinates, return the four reflections
+    of the coordinates across the center point.
     """
+    coords = ((c_x + x, c_y + y), (c_x - x, c_y + y), (c_x - x, c_y - y),
+              (c_x + x, c_y - y))
+    new_coords = []
+    for new_x, new_y in coords:
+        new_coords.append(())
 
-class HollowCircle(Tool):
+def raster_ellipse(start_x, start_y, end_x, end_y):
+    """
+    Generate a set of points describing the outline of an ellipse specified by
+    the given bounding box.
+    """
+    if start_x > end_x:
+        start_x, end_x = end_x, start_x
+    if start_y > end_y:
+        start_y, end_y = end_y, start_y
+    center_x, center_y = start_x + end_x, start_y + end_y
+    x_radius, y_radius = center_x - start_x*2, center_y - start_y*2
+
+    points = set()
+
+    # handle special cases
+    if x_radius == 0 or y_radius == 0:
+        for x in xrange(start_x, end_x+1):
+            for y in xrange(start_y, end_y+1):
+                points.add((x,y))
+        return list(points)
+
+    #this does twice as much work as it needs to, but it gets the job done
+    semi_major = x_radius
+    semi_minor = y_radius
+    for x in xrange(x_radius+1):
+        y = int(round(sqrt((1 - (float(x) / semi_major) ** 2) * semi_minor ** 2)))
+        points.update(raster_4_ellipse_points(center_x, center_y, x, y))
+
+    # ideally, these would stop iterating when the slope of the points passes 1
+    semi_major = y_radius
+    semi_minor = x_radius
+    for y in xrange(y_radius+1):
+        x = int(round(sqrt((1 - (float(y) / semi_major) ** 2) * semi_minor ** 2)))
+        points.update(raster_4_ellipse_points(center_x, center_y, x, y))
+
+    return list(points)
+
+class HollowCircle(DragTool):
     """
     Draw a hollow circle.
     """
+    def do(self, canvas):
+        if self.start_x and self.end_x:
+            for x, y, in raster_ellipse(self.start_x, self.start_y, self.end_x,
+                                        self.end_y):
+                plot(canvas, x, y, self.color)
+
+class Circle(DragTool):
+    """
+    Draw a filled-in circle.
+    """
+    def do(self, canvas):
+        if self.start_x and self.end_x:
+            points = raster_ellipse(self.start_x, self.start_y, self.end_x,
+                                    self.end_y)
+            for x, y, in points:
+                plot(canvas, x, y, self.color)
+            for x, y in fill_ellipse(points):
+                plot(canvas, x, y, self.color)
 
 class Rectangle(Tool):
     """
@@ -247,7 +310,7 @@ class SlammerCtrl(object):
         self.left_tool = Pencil
         self.left_color = (0,255,0,255)
 
-        self.right_tool = Line
+        self.right_tool = HollowCircle
         self.right_color = (0,0,255,255)
 
         self.view = view
