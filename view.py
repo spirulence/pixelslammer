@@ -92,6 +92,8 @@ class ToolboxView(SelfRegistrant):
     right_arrow = pyglet.resource.image("res/rightarrow.png")
 
     def __init__(self, *args, **kwargs):
+        kwargs.setdefault("width", self.right_arrow_loc[0]+self.arrow_w)
+        kwargs.setdefault("height", 72)
         super(ToolboxView, self).__init__(*args, **kwargs)
 
         self.highlighted = None
