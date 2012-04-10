@@ -32,10 +32,6 @@ class CanvasView(SelfRegistrant):
 
         self.highlighted_cell = None
 
-        self.background_color = (0.0, 0.5, 0.0, 1.0)
-
-        pyglet.gl.glEnable
-
     def set_canvas(self, canvas):
         self.canvas = canvas
         self.fit_to_canvas()
@@ -114,7 +110,8 @@ class ToolboxView(SelfRegistrant):
     A window that holds all the tools in the toolbox.
     """
 
-    dispatches = ["on_tool_selected", "on_scale_changed", "on_color_selected"]
+    dispatches = ["on_tool_selected", "on_scale_changed", "on_color_selected",
+                  "on_bg_color_selected"]
 
     tool_icons = ["pencil.png", "eraser.png", "killeraser.png", "line.png",
                   "circle.png", "hollowcircle.png", "rectangle.png",
@@ -155,6 +152,8 @@ class ToolboxView(SelfRegistrant):
 
         self.right_tool = 0
         self.right_color = (128, 128, 128)
+
+        self.background_color = (0, 0, 0)
 
         self.scale = 8
 
@@ -200,6 +199,10 @@ class ToolboxView(SelfRegistrant):
         elif self.scale_decreased(x ,y):
             self.scale -= 1
             self.dispatch_event("on_scale_changed", self.scale)
+        elif x > self.tool_loc[-1][0] and y > self.tool_loc[-1][1]:
+            new_bg_color = askcolor()[0]
+            self.background_color = new_bg_color
+            self.dispatch_event("on_bg_color_selected", new_bg_color)
 
     def scale_decreased(self, x, y):
         if x > self.left_arrow_loc[0] and x < self.left_arrow_loc[0] + self.arrow_w:
@@ -254,6 +257,11 @@ class ToolboxView(SelfRegistrant):
             pyglet.graphics.draw(4*len(self.palette), gl.GL_QUADS,
                 ("v2i", swatches+swatches2),
                 ("c3B", sw_color+sw2_color))
+
+        x, y = self.tool_loc[-1][0]+35, self.tool_loc[-1][1]
+        pyglet.graphics.draw(4, gl.GL_QUADS,
+            ("v2i", (x, y, x, y+32, x+32, y+32, x+32, y)),
+            ("c3B", self.background_color*4))
 
         gl.glColor3ub(255,255,255)
 

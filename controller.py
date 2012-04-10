@@ -376,6 +376,8 @@ class SlammerCtrl(object):
         self.right_tool = Pencil
         self.right_color = (128,128,128, 255)
 
+        self.background_color = (0.0, 0.0, 0.0, 1.0)
+
         self.palette = list(product((0, 127, 255), repeat=3)) + [(0,0,0)]*13
 
         self.view = view
@@ -420,7 +422,7 @@ class SlammerCtrl(object):
         self.run_action_if_ready()
 
     def on_canvas_draw(self):
-        pyglet.gl.glClearColor(*self.view.canvas.background_color)
+        pyglet.gl.glClearColor(*self.background_color)
         self.view.canvas.clear()
         if self.action_incomplete():
             preview_canvas = self.model.canvas.copy()
@@ -429,6 +431,10 @@ class SlammerCtrl(object):
             self.view.canvas.draw_canvas(preview_canvas)
         else:
             self.view.canvas.draw_canvas(self.model.canvas)
+
+    def on_bg_color_selected(self, color):
+        self.background_color = [c / 255.0 for c in color]
+        self.background_color.append(1.0)
 
     def on_color_selected(self, color, side):
         if side == "left":
