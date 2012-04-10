@@ -182,16 +182,14 @@ class Line(DragTool):
                                     self.end_y):
                 plot(canvas, x, y, self.color)
 
-def raster_4_ellipse_points(c_x, c_y, x, y):
-    """
-    Given a center point and x and y coordinates, return the four reflections
-    of the coordinates across the center point.
-    """
-    coords = ((c_x + x, c_y + y), (c_x - x, c_y + y), (c_x - x, c_y - y),
-              (c_x + x, c_y - y))
-    new_coords = []
-    for new_x, new_y in coords:
-        new_coords.append(())
+def reflect_and_round(center_x, center_y, x, y):
+    return [(int(round(center_x + x)), int(round(center_y + y)))]
+
+def ellipse_derivative(variable, a, b):
+    return (b * variable)/((a**2)*sqrt(1-(variable/a)**2))
+
+def ellipse_function(variable, a, b):
+    return b*sqrt(1-(variable/a)**2)
 
 def raster_ellipse(start_x, start_y, end_x, end_y):
     """
@@ -202,33 +200,31 @@ def raster_ellipse(start_x, start_y, end_x, end_y):
         start_x, end_x = end_x, start_x
     if start_y > end_y:
         start_y, end_y = end_y, start_y
-    center_x, center_y = start_x + end_x, start_y + end_y
-    x_radius, y_radius = center_x - start_x*2, center_y - start_y*2
+
+    center_y = (start_y + end_y)/2.0
+    center_x = (start_x + end_x)/2.0
+    x_radius = end_x - center_x
+    y_radius = end_y - center_y
 
     points = set()
 
-    # handle special cases
-    if x_radius == 0 or y_radius == 0:
-        for x in xrange(start_x, end_x+1):
-            for y in xrange(start_y, end_y+1):
-                points.add((x,y))
-        return list(points)
+    for x in xrange(int(x_radius)):
+        y = ellipse_function(x, x_radius, y_radius)
+        slope = ellipse_derivative(x, x_radius, y_radius)
+        if slope > 1.0:
+            break
+        points.update(reflect_and_round(center_x, center_y, x, y))
 
-    #this does twice as much work as it needs to, but it gets the job done
-    semi_major = x_radius
-    semi_minor = y_radius
-    for x in xrange(x_radius+1):
-        y = int(round(sqrt((1 - (float(x) / semi_major) ** 2) * semi_minor ** 2)))
-        points.update(raster_4_ellipse_points(center_x, center_y, x, y))
-
-    # ideally, these would stop iterating when the slope of the points passes 1
-    semi_major = y_radius
-    semi_minor = x_radius
-    for y in xrange(y_radius+1):
-        x = int(round(sqrt((1 - (float(y) / semi_major) ** 2) * semi_minor ** 2)))
-        points.update(raster_4_ellipse_points(center_x, center_y, x, y))
+    for y in xrange(int(y_radius)):
+        x = ellipse_function(y, y_radius, x_radius)
+        slope = ellipse_derivative(y, y_radius, x_radius)
+        if slope > 1.0:
+            break
+        points.update(reflect_and_round(center_x, center_y, x, y))
 
     return list(points)
+
+print sorted(raster_ellipse(0, 0, 18, 12))
 
 class HollowCircle(DragTool):
     """
