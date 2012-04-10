@@ -370,6 +370,7 @@ class SlammerCtrl(object):
         self.view.push_handlers(self)
         self.view.canvas.set_canvas(self.model.canvas)
         self.view.canvas.set_visible()
+        self.view.toolbox.set_visible()
 
     def should_push_new_action(self):
         return not self.action_stack or self.action_stack[-1].is_ready()
