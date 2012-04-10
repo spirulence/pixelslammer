@@ -378,7 +378,7 @@ class SlammerCtrl(object):
         scale = self.view.canvas.scale
         return x // scale, y // scale
 
-    def on_mouse_press(self, x, y, buttons, modifiers):
+    def on_canvas_press(self, x, y, buttons, modifiers):
         if self.should_push_new_action():
             self.push_new_action(buttons, modifiers)
 
@@ -386,18 +386,17 @@ class SlammerCtrl(object):
 
         self.run_action_if_ready()
 
-    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+    def on_canvas_drag(self, x, y, dx, dy, buttons, modifiers):
         if self.should_push_new_action():
             self.push_new_action(buttons, modifiers)
 
-        #print "drag from", start_x, start_y, "to", end_x, end_y
         start_x, start_y = self.downscale_coords(x, y)
         end_x, end_y = self.downscale_coords(x-dx, y-dy)
         self.get_top_action().accept_drag(start_x, start_y, end_x, end_y)
 
         self.run_action_if_ready()
 
-    def on_mouse_release(self, x, y, buttons, modifiers):
+    def on_canvas_release(self, x, y, buttons, modifiers):
         if self.should_push_new_action():
             self.push_new_action(buttons, modifiers)
 
@@ -412,7 +411,7 @@ class SlammerCtrl(object):
     def action_incomplete(self):
         return self.action_stack and not self.get_top_action().is_ready()
 
-    def on_draw(self):
+    def on_canvas_draw(self):
         self.view.canvas.clear()
         if self.action_incomplete():
             preview_canvas = self.model.canvas.copy()

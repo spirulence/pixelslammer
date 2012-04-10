@@ -3,7 +3,20 @@ __author__ = 'cseebach'
 import pyglet
 from pyglet import gl
 
-class CanvasView(pyglet.window.Window):
+class SelfRegistrant(pyglet.window.Window):
+
+    dispatches = []
+
+    def __init__(self, *args, **kwargs):
+        super(SelfRegistrant, self).__init__(*args, **kwargs)
+
+        for event_type in self.dispatches:
+            self.register_event_type(event_type)
+
+class CanvasView(SelfRegistrant):
+
+    dispatches = ["on_canvas_press", "on_canvas_drag", "on_canvas_release",
+                  "on_canvas_draw"]
 
     def __init__(self, *args, **kwargs):
         super(CanvasView, self).__init__(*args, **kwargs)
@@ -19,6 +32,22 @@ class CanvasView(pyglet.window.Window):
         new_w = self.canvas.width * self.scale
         new_h = self.canvas.height * self.scale
         self.set_size(new_w, new_h)
+
+    def on_expose(self):
+        #need an empty method here to have pyglet redraw on unhide
+        pass
+
+    def on_draw(self):
+        self.dispatch_event("on_canvas_draw")
+
+    def on_mouse_press(self, x, y, buttons, modifiers):
+        self.dispatch_event("on_canvas_press", x, y, buttons, modifiers)
+
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        self.dispatch_event("on_canvas_drag", x, y, dx, dy, buttons, modifiers)
+
+    def on_mouse_release(self, x, y, buttons, modifiers):
+        self.dispatch_event("on_canvas_release", x, y, buttons, modifiers)
 
     def draw_canvas(self, canvas):
         texture = canvas.get_texture()
