@@ -441,6 +441,10 @@ class SlammerCtrl(object):
         else:
             self.right_tool = self.tools[tool]
 
+    def on_scale_changed(self, scale):
+        self.view.canvas.scale = scale
+        self.view.canvas.set_canvas(self.model.canvas)
+
     def on_key_press(self, key, modifiers):
         if key == keys.Z and keys.MOD_CTRL & modifiers:
             self.undo()

@@ -104,6 +104,8 @@ class ToolboxView(SelfRegistrant):
         self.right_tool = 0
         self.right_color = (128, 128, 128)
 
+        self.scale = 8
+
     def on_expose(self):
     #need an empty method here to have pyglet redraw on unhide
         pass
@@ -138,6 +140,22 @@ class ToolboxView(SelfRegistrant):
                 self.dispatch_event("on_color_selected", swatch,
                                     "right")
                 self.right_color = swatch
+        elif self.scale_increased(x, y):
+            self.scale += 1
+            self.dispatch_event("on_scale_changed", self.scale)
+        elif self.scale_decreased(x ,y):
+            self.scale -= 1
+            self.dispatch_event("on_scale_changed", self.scale)
+
+    def scale_decreased(self, x, y):
+        if x > self.left_arrow_loc[0] and x < self.left_arrow_loc[0] + self.arrow_w:
+            if y > self.left_arrow_loc[1] and y < self.left_arrow_loc[1] + self.arrow_h:
+                return True
+
+    def scale_increased(self, x, y):
+        if x > self.right_arrow_loc[0] and x < self.right_arrow_loc[0] + self.arrow_w:
+            if y > self.right_arrow_loc[1] and y < self.right_arrow_loc[1] + self.arrow_h:
+                return True
 
     def over_palette_swatch(self, x, y):
         for sw_x, sw_y in self.swatch_loc:
