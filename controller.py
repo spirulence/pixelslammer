@@ -439,7 +439,6 @@ class SlammerCtrl(object):
             color = self.right_color
 
         self.action_stack.append(tool(color))
-        print len(self.action_stack)
 
     def get_top_action(self):
         return self.action_stack[-1]
