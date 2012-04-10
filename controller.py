@@ -456,12 +456,13 @@ class SlammerCtrl(object):
         return self.action_stack and not self.get_top_action().is_ready()
 
     def undo(self):
-        self.model = self.base_model.copy()
-        self.action_stack.pop()
-        for action in self.action_stack:
-            action.do(self.model.canvas)
-        self.model.canvas.flush_changes()
-        self.view.canvas.set_canvas(self.model.canvas)
+        if self.action_stack:
+            self.model = self.base_model.copy()
+            self.action_stack.pop()
+            for action in self.action_stack:
+                action.do(self.model.canvas)
+            self.model.canvas.flush_changes()
+            self.view.canvas.set_canvas(self.model.canvas)
 
     def push_new_action(self, buttons, modifiers):
         if pyglet.window.mouse.LEFT & buttons:
