@@ -316,12 +316,51 @@ class HollowRectangle(DragTool):
                 plot(canvas, start_x, y, self.color)
                 plot(canvas, end_x, y, self.color)
 
+class ClickTool(Tool):
+    """
+    A tool that accepts only one click and release before being ready.
+    """
 
-class FloodFill(Tool):
+    def __init__(self, color):
+        super(ClickTool, self).__init__(color)
+        self.x, self.y = None, None
+
+    def _accept_press(self, x, y):
+        self.x, self.y = x, y
+
+    def _accept_release(self, x, y):
+        self._is_ready = True
+
+class FloodFill(ClickTool):
     """
     Fill the areas adjacent to a selected pixel that are also that pixel's
     color in a different color.
     """
+
+    def do(self, canvas):
+        if self.x is not None:
+            color_to_replace = canvas.get_pixel(self.x, self.y)
+            pixels_to_replace = set([(self.x, self.y)])
+
+            found_new = True
+            while found_new:
+                found_new = False
+                new_pixels = set()
+                for pixel in pixels_to_replace:
+                    nearby_pixels = [(pixel[0]+1,pixel[1]),
+                                     (pixel[0]-1,pixel[1]),
+                                     (pixel[0],pixel[1]+1),
+                                     (pixel[0],pixel[1]-1),]
+                    for nearby_pixel in nearby_pixels:
+                        if color_to_replace == canvas.get_pixel(*nearby_pixel):
+                            if nearby_pixel not in new_pixels:
+                                if nearby_pixel not in pixels_to_replace:
+                                    found_new = True
+                                    new_pixels.add(nearby_pixel)
+                pixels_to_replace.update(new_pixels)
+
+            for pixel in pixels_to_replace:
+                canvas.set_pixel(pixel[0], pixel[1], self.color)
 
 class KillEraser(Tool):
     """
@@ -359,7 +398,7 @@ class SlammerCtrl(object):
     """
 
     tools = [Pencil, Eraser, KillEraser, Line, Circle, HollowCircle, Rectangle,
-             HollowRectangle, TilePlacer, LocalColorReplace,
+             HollowRectangle, TilePlacer, FloodFill, LocalColorReplace,
              GlobalColorReplace, Filmstrip]
 
     def __init__(self, model, view):

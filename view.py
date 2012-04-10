@@ -115,8 +115,8 @@ class ToolboxView(SelfRegistrant):
 
     tool_icons = ["pencil.png", "eraser.png", "killeraser.png", "line.png",
                   "circle.png", "hollowcircle.png", "rectangle.png",
-                  "hollowrectangle.png", "tileplacer.png", "localreplace.png",
-                  "globalreplace.png", "animation.png"]
+                  "hollowrectangle.png", "tileplacer.png", "fillbucket.png",
+                  "localreplace.png", "globalreplace.png", "animation.png"]
     tool_alpha = [pyglet.resource.image("res/alpha/"+loc) for loc in tool_icons]
     tool_icons = [pyglet.resource.image("res/normal/"+loc) for loc in tool_icons]
     tool_w, tool_h = 32, 32
@@ -201,8 +201,9 @@ class ToolboxView(SelfRegistrant):
             self.dispatch_event("on_scale_changed", self.scale)
         elif x > self.tool_loc[-1][0] and y > self.tool_loc[-1][1]:
             new_bg_color = askcolor()[0]
-            self.background_color = new_bg_color
-            self.dispatch_event("on_bg_color_selected", new_bg_color)
+            if new_bg_color:
+                self.background_color = new_bg_color
+                self.dispatch_event("on_bg_color_selected", new_bg_color)
 
     def scale_decreased(self, x, y):
         if x > self.left_arrow_loc[0] and x < self.left_arrow_loc[0] + self.arrow_w:
