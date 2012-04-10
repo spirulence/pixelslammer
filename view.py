@@ -184,7 +184,7 @@ class ToolboxView(SelfRegistrant):
         elif self.over_palette_swatch(x, y):
             swatch, index = self.get_palette_swatch(x, y)
             if pyglet.window.key.MOD_CTRL & modifers:
-                self.palette[index] = askcolor()[0]
+                self.palette[index] = askcolor()[0] or self.palette[index]
             elif pyglet.window.mouse.LEFT & buttons:
                 self.dispatch_event("on_color_selected", swatch,
                                     "left")
