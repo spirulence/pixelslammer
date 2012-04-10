@@ -1,6 +1,7 @@
 __author__ = 'cseebach'
 
-import os.path
+from tkColorChooser import askcolor
+import Tkinter
 
 import pyglet
 from pyglet import gl
@@ -137,6 +138,9 @@ class ToolboxView(SelfRegistrant):
     right_arrow_loc = left_arrow_loc[0] + arrow_w + 1, left_arrow_loc[1]
     right_arrow = pyglet.resource.image("res/rightarrow.png")
 
+    tk_root = Tkinter.Tk()
+    tk_root.iconify()
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("width", self.right_arrow_loc[0]+self.arrow_w)
         kwargs.setdefault("height", 72)
@@ -179,8 +183,10 @@ class ToolboxView(SelfRegistrant):
                                     "right")
                 self.right_tool = self.highlighted
         elif self.over_palette_swatch(x, y):
-            swatch = self.get_palette_swatch(x, y)
-            if pyglet.window.mouse.LEFT & buttons:
+            swatch, index = self.get_palette_swatch(x, y)
+            if pyglet.window.key.MOD_CTRL & modifers:
+                self.palette[index] = askcolor()[0]
+            elif pyglet.window.mouse.LEFT & buttons:
                 self.dispatch_event("on_color_selected", swatch,
                                     "left")
                 self.left_color = swatch
@@ -217,7 +223,7 @@ class ToolboxView(SelfRegistrant):
 
     def get_palette_swatch(self, x, y):
         sw_x, sw_y = (x - 66) // 17, y // 17
-        return self.palette[sw_x*2+sw_y]
+        return self.palette[sw_x * 2 + sw_y], sw_x * 2 + sw_y
 
     def set_palette(self, palette):
         self.palette = palette
@@ -274,6 +280,9 @@ class SlammerView(object):
     def __init__(self):
         self.canvas = CanvasView(visible=False)
         self.toolbox = ToolboxView(visible=False)
+
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 
     def push_handlers(self, handler):
         self.canvas.push_handlers(handler)
