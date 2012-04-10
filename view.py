@@ -81,8 +81,12 @@ class ToolboxView(SelfRegistrant):
 
     highlight = pyglet.resource.image("res/highlight.png")
 
+    swatch_w, swatch_h = 16, 16
+    swatch_loc = [(66 + 17 * i, 0) for i in xrange(20)]
+    swatch2_loc = [(66 + 17 * i, 17) for i in xrange(20)]
+
     arrow_w, arrow_h = 24, 24
-    left_arrow_loc = (tool_w+1)*len(tool_loc)+5, 0
+    left_arrow_loc = 17*20+65, 0
     left_arrow = pyglet.resource.image("res/leftarrow.png")
     right_arrow_loc = left_arrow_loc[0] + arrow_w + 1, left_arrow_loc[1]
     right_arrow = pyglet.resource.image("res/rightarrow.png")
@@ -92,11 +96,13 @@ class ToolboxView(SelfRegistrant):
 
         self.highlighted = None
 
+        self.palette = None
+
         self.left_tool = 0
-        self.left_color = (0, 128, 0)
+        self.left_color = (0, 0, 0)
 
         self.right_tool = 0
-        self.right_color = (128, 0, 0)
+        self.right_color = (128, 128, 128)
 
     def on_expose(self):
     #need an empty method here to have pyglet redraw on unhide
@@ -125,26 +131,59 @@ class ToolboxView(SelfRegistrant):
         elif self.over_palette_swatch(x, y):
             swatch = self.get_palette_swatch(x, y)
             if pyglet.window.mouse.LEFT & buttons:
-                self.dispatch_event("on_color_selected", swatch.color,
+                self.dispatch_event("on_color_selected", swatch,
                                     "left")
-                self.left_color = swatch.color
+                self.left_color = swatch
             else:
-                self.dispatch_event("on_color_selected", swatch.color,
+                self.dispatch_event("on_color_selected", swatch,
                                     "right")
-                self.right_color = swatch.color
+                self.right_color = swatch
 
+    def over_palette_swatch(self, x, y):
+        for sw_x, sw_y in self.swatch_loc:
+            if x > sw_x and x < sw_x + self.swatch_w:
+                if y > sw_y and y < sw_y + self.swatch_h:
+                    return True
+        for sw_x, sw_y in self.swatch2_loc:
+            if x > sw_x and x < sw_x + self.swatch_w:
+                if y > sw_y and y < sw_y + self.swatch_h:
+                    return True
+
+    def get_palette_swatch(self, x, y):
+        sw_x, sw_y = (x - 66) // 17, y // 17
+        return self.palette[sw_x*2+sw_y]
+
+    def set_palette(self, palette):
+        self.palette = palette
 
     def draw_palette(self):
         pyglet.graphics.draw(4, gl.GL_QUADS,
-            ("v2i", (0, 0, 0, 32, 32, 32, 32, 0)),
+            ("v2i", (0, 0, 0, 33, 32, 33, 32, 0)),
             ("c3B", self.left_color*4))
         pyglet.graphics.draw(4, gl.GL_QUADS,
-            ("v2i", (33, 0, 33, 32, 65, 32, 65, 0)),
+            ("v2i", (33, 0, 33, 33, 65, 33, 65, 0)),
             ("c3B", self.right_color*4))
 
+        if self.palette:
+            swatches = []
+            for x, y in self.swatch_loc:
+                swatches.extend((x, y, x, y+16, x+16, y+16, x+16, y))
+            swatches2 = []
+            for x, y in self.swatch2_loc:
+                swatches2.extend((x, y, x, y+16, x+16, y+16, x+16, y))
 
+            sw_color = []
+            for color in self.palette[::2]:
+                sw_color.extend(color*4)
+            sw2_color = []
+            for color in self.palette[1::2]:
+                sw2_color.extend(color*4)
 
-        gl.glColor4ub(255,255,255,255)
+            pyglet.graphics.draw(4*len(self.palette), gl.GL_QUADS,
+                ("v2i", swatches+swatches2),
+                ("c3B", sw_color+sw2_color))
+
+        gl.glColor3ub(255,255,255)
 
     def on_draw(self):
         self.clear()

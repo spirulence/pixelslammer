@@ -1,5 +1,6 @@
 from collections import defaultdict
 import math
+from itertools import product
 
 import pyglet
 import pyglet.window.key as keys
@@ -347,10 +348,19 @@ class LocalColorReplace(Tool):
     Replace one color with another across one tile.
     """
 
+class Filmstrip(Tool):
+    """
+    Playback an animation of the given tiles.
+    """
+
 class SlammerCtrl(object):
     """
     The Pixel Slammer business logic sitting in between the view and the model.
     """
+
+    tools = [Pencil, Eraser, KillEraser, Line, Circle, HollowCircle, Rectangle,
+             HollowRectangle, TilePlacer, LocalColorReplace,
+             GlobalColorReplace, Filmstrip]
 
     def __init__(self, model, view):
         """
@@ -360,16 +370,20 @@ class SlammerCtrl(object):
         self.model = model.copy()
         self.action_stack = []
 
-        self.left_tool = Rectangle
-        self.left_color = (0,255,0,255)
+        self.left_tool = Pencil
+        self.left_color = (0,0,0,255)
 
-        self.right_tool = HollowRectangle
-        self.right_color = (0,0,255,255)
+        self.right_tool = Pencil
+        self.right_color = (128,128,128, 255)
+
+        self.palette = list(product((0, 127, 255), repeat=3)) + [(0,0,0)]*13
 
         self.view = view
         self.view.push_handlers(self)
         self.view.canvas.set_canvas(self.model.canvas)
         self.view.canvas.set_visible()
+
+        self.view.toolbox.set_palette(self.palette)
         self.view.toolbox.set_visible()
 
     def should_push_new_action(self):
@@ -405,13 +419,6 @@ class SlammerCtrl(object):
 
         self.run_action_if_ready()
 
-    def on_key_press(self, key, modifiers):
-        if key == keys.Z and keys.MOD_CTRL & modifiers:
-            self.undo()
-
-    def action_incomplete(self):
-        return self.action_stack and not self.get_top_action().is_ready()
-
     def on_canvas_draw(self):
         self.view.canvas.clear()
         if self.action_incomplete():
@@ -421,6 +428,25 @@ class SlammerCtrl(object):
             self.view.canvas.draw_canvas(preview_canvas)
         else:
             self.view.canvas.draw_canvas(self.model.canvas)
+
+    def on_color_selected(self, color, side):
+        if side == "left":
+            self.left_color = color + (255,)
+        else:
+            self.right_color = color + (255,)
+
+    def on_tool_selected(self, tool, side):
+        if side == "left":
+            self.left_tool = self.tools[tool]
+        else:
+            self.right_tool = self.tools[tool]
+
+    def on_key_press(self, key, modifiers):
+        if key == keys.Z and keys.MOD_CTRL & modifiers:
+            self.undo()
+
+    def action_incomplete(self):
+        return self.action_stack and not self.get_top_action().is_ready()
 
     def undo(self):
         self.model = self.base_model.copy()
