@@ -4,6 +4,7 @@ import pickle
 import ctypes
 
 import pyglet
+from pyglet import gl
 
 class Tile(pyglet.image.ImageData):
     """
@@ -48,6 +49,11 @@ class Tile(pyglet.image.ImageData):
         t.ctypes_data[:] = self.ctypes_data
         return t
 
+    def save(self, *args, **kwargs):
+        self.set_data("RGBA", self.width * 4, "".join(chr(i) for i in self.ctypes_data))
+        super(Tile, self).save(*args, **kwargs)
+        self.flush_changes()
+
 class Canvas(object):
 
     def __init__(self, tile_size, canvas_size):
@@ -74,6 +80,11 @@ class Canvas(object):
 
     def get_texture(self):
         return self.tile.get_texture()
+
+    def blit(self, x, y):
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+        self.tile.blit(x, y)
 
 class SlammerModel(object):
     """

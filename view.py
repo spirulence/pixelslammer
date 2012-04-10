@@ -31,6 +31,10 @@ class CanvasView(SelfRegistrant):
 
         self.highlighted_cell = None
 
+        self.background_color = (0.0, 0.5, 0.0, 1.0)
+
+        pyglet.gl.glEnable
+
     def set_canvas(self, canvas):
         self.canvas = canvas
         self.fit_to_canvas()
@@ -64,12 +68,17 @@ class CanvasView(SelfRegistrant):
         texture = canvas.get_texture()
         gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
                            gl.GL_NEAREST)
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
         texture.width = canvas.width * self.scale
         texture.height = canvas.height * self.scale
         texture.blit(0, 0)
 
         if self.highlighted_cell and self.draw_borders:
             h_x, h_y = self.highlighted_cell
+
+            gl.glLineWidth(2.0)
+
             pyglet.graphics.draw(8, gl.GL_LINES,
                 ("v2i", (h_x*self.scale*self.tile_size[0],
                          h_y*self.scale*self.tile_size[1],
@@ -265,9 +274,6 @@ class SlammerView(object):
     def __init__(self):
         self.canvas = CanvasView(visible=False)
         self.toolbox = ToolboxView(visible=False)
-
-        gl.glEnable(gl.GL_BLEND)
-        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 
     def push_handlers(self, handler):
         self.canvas.push_handlers(handler)

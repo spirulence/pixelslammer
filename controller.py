@@ -420,6 +420,7 @@ class SlammerCtrl(object):
         self.run_action_if_ready()
 
     def on_canvas_draw(self):
+        pyglet.gl.glClearColor(*self.view.canvas.background_color)
         self.view.canvas.clear()
         if self.action_incomplete():
             preview_canvas = self.model.canvas.copy()
@@ -448,6 +449,8 @@ class SlammerCtrl(object):
     def on_key_press(self, key, modifiers):
         if key == keys.Z and keys.MOD_CTRL & modifiers:
             self.undo()
+        elif key == keys.S:
+            self.model.canvas.tile.save("whee.png")
 
     def action_incomplete(self):
         return self.action_stack and not self.get_top_action().is_ready()
