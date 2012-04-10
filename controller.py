@@ -1,3 +1,4 @@
+from collections import defaultdict
 import math
 
 import pyglet
@@ -207,6 +208,9 @@ def raster_ellipse(start_x, start_y, end_x, end_y):
     """
     Generate a set of points describing the outline of an ellipse specified by
     the given bounding box.
+
+    I'd like this to handle ellipses with odd heights or widths a little better
+    in the future.
     """
     if start_x > end_x:
         start_x, end_x = end_x, start_x
@@ -232,7 +236,7 @@ def raster_ellipse(start_x, start_y, end_x, end_y):
                                   this_point[0], this_point[1]))
         last_point = this_point
 
-    return list(points)
+    return points
 
 class HollowCircle(DragTool):
     """
@@ -243,6 +247,23 @@ class HollowCircle(DragTool):
             for x, y, in raster_ellipse(self.start_x, self.start_y, self.end_x,
                                         self.end_y):
                 plot(canvas, x, y, self.color)
+
+def fill_ellipse(points):
+    points_by_x = defaultdict(list)
+    for x, y in points:
+        points_by_x[x].append((x, y))
+
+    additional_points = []
+    for points_list in points_by_x.itervalues():
+        points_list.sort()
+        x, last_y = points_list[0]
+        for x, y in points_list[1:]:
+            if y - last_y > 1:
+                for new_y in xrange(last_y+1, y):
+                    additional_points.append((x, new_y))
+            last_y = y
+
+    return additional_points
 
 class Circle(DragTool):
     """
@@ -314,7 +335,7 @@ class SlammerCtrl(object):
         self.left_tool = Pencil
         self.left_color = (0,255,0,255)
 
-        self.right_tool = HollowCircle
+        self.right_tool = Circle
         self.right_color = (0,0,255,255)
 
         self.view = view
