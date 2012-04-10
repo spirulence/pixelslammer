@@ -26,9 +26,15 @@ class CanvasView(SelfRegistrant):
         self.scale = kwargs.get("scale", 8)
         self.preview = None
 
+        self.draw_grid = True
+        self.draw_borders = True
+
+        self.highlighted_cell = None
+
     def set_canvas(self, canvas):
         self.canvas = canvas
         self.fit_to_canvas()
+        self.tile_size = canvas.tile_size
 
     def fit_to_canvas(self):
         new_w = self.canvas.width * self.scale
@@ -51,6 +57,9 @@ class CanvasView(SelfRegistrant):
     def on_mouse_release(self, x, y, buttons, modifiers):
         self.dispatch_event("on_canvas_release", x, y, buttons, modifiers)
 
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.highlighted_cell = (x/self.scale)//self.tile_size[0], (y/self.scale)//self.tile_size[1]
+
     def draw_canvas(self, canvas):
         texture = canvas.get_texture()
         gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
@@ -58,6 +67,34 @@ class CanvasView(SelfRegistrant):
         texture.width = canvas.width * self.scale
         texture.height = canvas.height * self.scale
         texture.blit(0, 0)
+
+        if self.highlighted_cell and self.draw_borders:
+            h_x, h_y = self.highlighted_cell
+            pyglet.graphics.draw(8, gl.GL_LINES,
+                ("v2i", (h_x*self.scale*self.tile_size[0],
+                         h_y*self.scale*self.tile_size[1],
+
+                         h_x*self.scale*self.tile_size[0],
+                         (h_y+1)*self.scale*self.tile_size[1],
+
+                         h_x*self.scale*self.tile_size[0],
+                         (h_y+1)*self.scale*self.tile_size[1],
+
+                         (h_x+1)*self.scale*self.tile_size[0],
+                         (h_y+1)*self.scale*self.tile_size[1],
+
+                         (h_x+1)*self.scale*self.tile_size[0],
+                         (h_y+1)*self.scale*self.tile_size[1],
+
+                         (h_x+1)*self.scale*self.tile_size[0],
+                         h_y*self.scale*self.tile_size[1],
+
+                         (h_x+1)*self.scale*self.tile_size[0],
+                         h_y*self.scale*self.tile_size[1],
+
+                         h_x*self.scale*self.tile_size[0],
+                         h_y*self.scale*self.tile_size[1],)),
+                ("c3B", (0,0,0,255,255,255)*4))
 
 pyglet.resource.path += ["res/normal", "res/alpha"]
 pyglet.resource.reindex()
