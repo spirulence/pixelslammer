@@ -177,7 +177,7 @@ class Line(DragTool):
     """
 
     def do(self, canvas):
-        if self.start_x and self.end_x:
+        if self.start_x is not None and self.end_x is not None:
             for x, y in raster_line(self.start_x, self.start_y, self.end_x,
                                     self.end_y):
                 plot(canvas, x, y, self.color)
@@ -231,7 +231,7 @@ class HollowCircle(DragTool):
     Draw a hollow circle.
     """
     def do(self, canvas):
-        if self.start_x and self.end_x:
+        if self.start_x is not None and self.end_x is not None:
             for x, y, in raster_ellipse(self.start_x, self.start_y, self.end_x,
                                         self.end_y):
                 plot(canvas, x, y, self.color)
@@ -241,7 +241,7 @@ class Circle(DragTool):
     Draw a filled-in circle.
     """
     def do(self, canvas):
-        if self.start_x and self.end_x:
+        if self.start_x is not None and self.end_x is not None:
             points = raster_ellipse(self.start_x, self.start_y, self.end_x,
                                     self.end_y)
             for x, y, in points:
