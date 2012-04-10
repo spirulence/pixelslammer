@@ -22,10 +22,11 @@ class Tool(object):
         times if you like. (Handy for undo/redo functionality)
     """
 
-    def __init__(self, color):
+    def __init__(self, color, ctrl):
         """Create a new Tool, and give it the color it should apply."""
         self.color = color
         self._is_ready = False
+        self.ctrl = ctrl
 
     def accept_press(self, x, y):
         """
@@ -126,8 +127,8 @@ class Pencil(Tool):
     A class for drawing simple lines and points on the canvas.
     """
 
-    def __init__(self, color):
-        super(Pencil, self).__init__(color)
+    def __init__(self, color, ctrl):
+        super(Pencil, self).__init__(color, ctrl)
         self.to_plot = set()
 
     def _accept_press(self, x, y):
@@ -159,8 +160,8 @@ class DragTool(Tool):
     ready.
     """
 
-    def __init__(self, color):
-        super(DragTool, self).__init__(color)
+    def __init__(self, color, ctrl):
+        super(DragTool, self).__init__(color, ctrl)
         self.start_x, self.start_y = None, None
         self.end_x, self.end_y = None, None
 
@@ -321,8 +322,8 @@ class ClickTool(Tool):
     A tool that accepts only one click and release before being ready.
     """
 
-    def __init__(self, color):
-        super(ClickTool, self).__init__(color)
+    def __init__(self, color, ctrl):
+        super(ClickTool, self).__init__(color, ctrl)
         self.x, self.y = None, None
 
     def _accept_press(self, x, y):
@@ -366,6 +367,7 @@ class KillEraser(Tool):
     """
     Erase an entire tile.
     """
+
 
 class EyeDropper(Tool):
     """
@@ -517,7 +519,7 @@ class SlammerCtrl(object):
             tool = self.right_tool
             color = self.right_color
 
-        self.action_stack.append(tool(color))
+        self.action_stack.append(tool(color, self))
 
     def get_top_action(self):
         return self.action_stack[-1]
