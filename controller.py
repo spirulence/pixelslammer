@@ -188,6 +188,9 @@ def reflect_and_round(center_x, center_y, x, y):
 def ellipse_derivative(variable, a, b):
     return (b * variable)/((a**2)*sqrt(1-(variable/a)**2))
 
+def where_ellipse_slope_is_one(a, b):
+    return sqrt(b**2/(a**2 + 1))
+
 def ellipse_function(variable, a, b):
     return b*sqrt(1-(variable/a)**2)
 
@@ -208,10 +211,15 @@ def raster_ellipse(start_x, start_y, end_x, end_y):
 
     points = set()
 
+
     for x in xrange(int(x_radius)):
         y = ellipse_function(x, x_radius, y_radius)
         slope = ellipse_derivative(x, x_radius, y_radius)
         if slope > 1.0:
+            one_slope_x = where_ellipse_slope_is_one(x_radius, y_radius)
+            one_slope_y = ellipse_function(one_slope_x, x_radius, y_radius)
+            points.update(reflect_and_round(center_x, center_y, one_slope_x,
+                                            one_slope_y))
             break
         points.update(reflect_and_round(center_x, center_y, x, y))
 
@@ -219,6 +227,10 @@ def raster_ellipse(start_x, start_y, end_x, end_y):
         x = ellipse_function(y, y_radius, x_radius)
         slope = ellipse_derivative(y, y_radius, x_radius)
         if slope > 1.0:
+            one_slope_x = where_ellipse_slope_is_one(x_radius, y_radius)
+            one_slope_y = ellipse_function(one_slope_x, x_radius, y_radius)
+            points.update(reflect_and_round(center_x, center_y, one_slope_x,
+                                            one_slope_y))
             break
         points.update(reflect_and_round(center_x, center_y, x, y))
 
