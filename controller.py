@@ -278,15 +278,43 @@ class Circle(DragTool):
             for x, y in fill_ellipse(points):
                 plot(canvas, x, y, self.color)
 
-class Rectangle(Tool):
+class Rectangle(DragTool):
     """
     Draw a rectangle.
     """
+    def do(self, canvas):
+        if self.start_x is not None and self.end_x is not None:
+            start_x, start_y = self.start_x, self.start_y
+            end_x, end_y = self.end_x, self.end_y
+            if start_x > end_x:
+                start_x, end_x = end_x, start_x
+            if start_y > end_y:
+                start_y, end_y = end_y, start_y
 
-class HollowRectangle(Tool):
+            for x in xrange(start_x, end_x+1):
+                for y in xrange(start_y, end_y+1):
+                    plot(canvas, x, y, self.color)
+
+class HollowRectangle(DragTool):
     """
     Draw a hollow rectangle.
     """
+    def do(self, canvas):
+        if self.start_x is not None and self.end_x is not None:
+            start_x, start_y = self.start_x, self.start_y
+            end_x, end_y = self.end_x, self.end_y
+            if start_x > end_x:
+                start_x, end_x = end_x, start_x
+            if start_y > end_y:
+                start_y, end_y = end_y, start_y
+
+            for x in xrange(start_x, end_x+1):
+                plot(canvas, x, start_y, self.color)
+                plot(canvas, x, end_y, self.color)
+            for y in xrange(start_y, end_y+1):
+                plot(canvas, start_x, y, self.color)
+                plot(canvas, end_x, y, self.color)
+
 
 class FloodFill(Tool):
     """
@@ -332,10 +360,10 @@ class SlammerCtrl(object):
         self.model = model.copy()
         self.action_stack = []
 
-        self.left_tool = Pencil
+        self.left_tool = Rectangle
         self.left_color = (0,255,0,255)
 
-        self.right_tool = Circle
+        self.right_tool = HollowRectangle
         self.right_color = (0,0,255,255)
 
         self.view = view
