@@ -1,4 +1,5 @@
-from math import sqrt
+import math
+
 import pyglet
 import pyglet.window.key as keys
 
@@ -182,17 +183,25 @@ class Line(DragTool):
                                     self.end_y):
                 plot(canvas, x, y, self.color)
 
-def reflect_and_round(center_x, center_y, x, y):
-    return [(int(round(center_x + x)), int(round(center_y + y)))]
+def round_up(number):
+    return int(round(number))
 
-def ellipse_derivative(variable, a, b):
-    return (b * variable)/((a**2)*sqrt(1-(variable/a)**2))
+def round_down(number):
+    return -int(round(-number))
 
-def where_ellipse_slope_is_one(a, b):
-    return sqrt(b**2/(a**2 + 1))
+def ellipse_parametric_equation(angle, a, b, x_center, y_center):
+    x = math.cos(angle) * a
+    if x < 0:
+        x = round_down(x + x_center)
+    else:
+        x = round_up(x + x_center)
 
-def ellipse_function(variable, a, b):
-    return b*sqrt(1-(variable/a)**2)
+    y = math.sin(angle) * b
+    if y < 0:
+        y = round_down(y + y_center)
+    else:
+        y = round_up(y + y_center)
+    return x, y
 
 def raster_ellipse(start_x, start_y, end_x, end_y):
     """
@@ -209,34 +218,21 @@ def raster_ellipse(start_x, start_y, end_x, end_y):
     x_radius = end_x - center_x
     y_radius = end_y - center_y
 
+    num_segments = max(int(x_radius * y_radius)*2, 16)
+
     points = set()
 
-
-    for x in xrange(int(x_radius)):
-        y = ellipse_function(x, x_radius, y_radius)
-        slope = ellipse_derivative(x, x_radius, y_radius)
-        if slope > 1.0:
-            one_slope_x = where_ellipse_slope_is_one(x_radius, y_radius)
-            one_slope_y = ellipse_function(one_slope_x, x_radius, y_radius)
-            points.update(reflect_and_round(center_x, center_y, one_slope_x,
-                                            one_slope_y))
-            break
-        points.update(reflect_and_round(center_x, center_y, x, y))
-
-    for y in xrange(int(y_radius)):
-        x = ellipse_function(y, y_radius, x_radius)
-        slope = ellipse_derivative(y, y_radius, x_radius)
-        if slope > 1.0:
-            one_slope_x = where_ellipse_slope_is_one(x_radius, y_radius)
-            one_slope_y = ellipse_function(one_slope_x, x_radius, y_radius)
-            points.update(reflect_and_round(center_x, center_y, one_slope_x,
-                                            one_slope_y))
-            break
-        points.update(reflect_and_round(center_x, center_y, x, y))
+    last_point = ellipse_parametric_equation(0, x_radius, y_radius, center_x,
+                                             center_y)
+    for i in xrange(1, num_segments + 1):
+        angle = (float(i) / num_segments) * 2 * math.pi
+        this_point = ellipse_parametric_equation(angle, x_radius, y_radius,
+                                                 center_x, center_y)
+        points.update(raster_line(last_point[0], last_point[1],
+                                  this_point[0], this_point[1]))
+        last_point = this_point
 
     return list(points)
-
-print sorted(raster_ellipse(0, 0, 18, 12))
 
 class HollowCircle(DragTool):
     """
