@@ -1,7 +1,6 @@
 TODO
 
 tilesetmanager:
-    graphics for select, delete, tile ID buttons
     whole implementation
 
 tile placer, tile remove, tile flip, tile rotate

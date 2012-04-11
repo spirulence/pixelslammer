@@ -282,11 +282,13 @@ class ToolboxView(SelfRegistrant):
         self.tool_alpha[self.left_tool].blit(0, 0)
         self.tool_alpha[self.right_tool].blit(33, 0)
 
-class TileListView(SelfRegistrant):
+class TilesetManagerView(SelfRegistrant):
 
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("width", 200)
-        kwargs.setdefault("height", 200)
+    tile_select = pyglet.resource.image("res/tileselect.png")
+    tile_delete = pyglet.resource.image("res/tiledelete.png")
+    tile_number = pyglet.resource.image("res/tilenumber.png")
+    minus = pyglet.resource.image("res/minus.png")
+    plus = pyglet.resource.image("res/plus.png")
 
 class SlammerView(object):
     """
