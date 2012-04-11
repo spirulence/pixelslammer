@@ -131,10 +131,10 @@ class ToolboxView(SelfRegistrant):
     swatch2_loc = [(66 + 17 * i, 17) for i in xrange(20)]
 
     arrow_w, arrow_h = 24, 24
-    left_arrow_loc = 17*20+65, 0
-    left_arrow = pyglet.resource.image("res/leftarrow.png")
-    right_arrow_loc = left_arrow_loc[0] + arrow_w + 1, left_arrow_loc[1]
-    right_arrow = pyglet.resource.image("res/rightarrow.png")
+    minus_loc = 17*20+65, 0
+    minus = pyglet.resource.image("res/minus.png")
+    plus_loc = minus_loc[0] + arrow_w + 1, minus_loc[1]
+    plus = pyglet.resource.image("res/plus.png")
 
     tk_root = Tkinter.Tk()
     tk_root.iconify()
@@ -207,13 +207,13 @@ class ToolboxView(SelfRegistrant):
                 self.dispatch_event("on_bg_color_selected", new_bg_color)
 
     def scale_decreased(self, x, y):
-        if x > self.left_arrow_loc[0] and x < self.left_arrow_loc[0] + self.arrow_w:
-            if y > self.left_arrow_loc[1] and y < self.left_arrow_loc[1] + self.arrow_h:
+        if x > self.minus_loc[0] and x < self.minus_loc[0] + self.arrow_w:
+            if y > self.minus_loc[1] and y < self.minus_loc[1] + self.arrow_h:
                 return True
 
     def scale_increased(self, x, y):
-        if x > self.right_arrow_loc[0] and x < self.right_arrow_loc[0] + self.arrow_w:
-            if y > self.right_arrow_loc[1] and y < self.right_arrow_loc[1] + self.arrow_h:
+        if x > self.plus_loc[0] and x < self.plus_loc[0] + self.arrow_w:
+            if y > self.plus_loc[1] and y < self.plus_loc[1] + self.arrow_h:
                 return True
 
     def over_palette_swatch(self, x, y):
@@ -274,8 +274,8 @@ class ToolboxView(SelfRegistrant):
             icon.blit(*location)
             if self.highlighted == i:
                 self.highlight.blit(*location)
-        self.left_arrow.blit(*self.left_arrow_loc)
-        self.right_arrow.blit(*self.right_arrow_loc)
+        self.minus.blit(*self.minus_loc)
+        self.plus.blit(*self.plus_loc)
 
         self.draw_palette()
 

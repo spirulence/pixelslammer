@@ -23,7 +23,6 @@ toolboxview:
     bg changer labeled
     bg changer in bottom row
     label scale buttons
-    + and - buttons instead of arrows
 
 jsonification of tools for saving undo state
 
