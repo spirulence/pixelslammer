@@ -140,7 +140,7 @@ class ToolboxView(SelfRegistrant):
     tk_root.iconify()
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault("width", self.right_arrow_loc[0]+self.arrow_w)
+        kwargs.setdefault("width", self.tool_loc[-1][0]+60)
         kwargs.setdefault("height", 72)
         super(ToolboxView, self).__init__(*args, **kwargs)
 
@@ -198,7 +198,7 @@ class ToolboxView(SelfRegistrant):
             self.scale += 1
             self.dispatch_event("on_scale_changed", self.scale)
         elif self.scale_decreased(x ,y):
-            self.scale -= 1
+            self.scale = max(1, self.scale - 1)
             self.dispatch_event("on_scale_changed", self.scale)
         elif x > self.tool_loc[-1][0] and y > self.tool_loc[-1][1]:
             new_bg_color = askcolor()[0]
@@ -268,6 +268,7 @@ class ToolboxView(SelfRegistrant):
         gl.glColor3ub(255,255,255)
 
     def on_draw(self):
+        pyglet.gl.glClearColor(.25,.25,.25,1.0)
         self.clear()
         for i, location, icon in self.tools:
             icon.blit(*location)
