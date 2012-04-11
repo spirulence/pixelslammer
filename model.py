@@ -95,6 +95,11 @@ class Tile(pyglet.image.ImageData):
         super(Tile, self).save(*args, **kwargs)
         self.flush_changes()
 
+    def erase(self):
+        for i in xrange(len(self.ctypes_data)):
+            self.ctypes_data[i] = 0
+        self.dirty = True
+
 class Canvas(object):
 
     def __init__(self, tile_size, canvas_size, copy_from=None):
@@ -137,6 +142,9 @@ class Canvas(object):
                 texture.blit_into(self.tiles[y][x], x*self.tile_size[0],
                                   y*self.tile_size[1], 0)
         return texture
+
+    def get_tile(self, x, y):
+        return x // self.tile_size[0], y // self.tile_size[1]
 
 class SlammerModel(object):
     """

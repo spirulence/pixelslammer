@@ -363,11 +363,14 @@ class FloodFill(ClickTool):
             for pixel in pixels_to_replace:
                 canvas.set_pixel(pixel[0], pixel[1], self.color)
 
-class KillEraser(Tool):
+class KillEraser(ClickTool):
     """
     Erase an entire tile.
     """
-
+    def do(self, canvas):
+        if self.x is not None:
+            tile_x, tile_y = canvas.get_tile(self.x, self.y)
+            canvas.tiles[tile_y][tile_x].erase()
 
 class EyeDropper(Tool):
     """
