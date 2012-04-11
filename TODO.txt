@@ -1,0 +1,36 @@
+TODO
+
+tilesetmanager:
+    graphics for select, delete, tile ID buttons
+    whole implementation
+
+tile placer, tile remove, tile flip, tile rotate
+tile flip - ctrl controls direction
+
+local replace, global replace
+
+animation view
+
+filmstrip
+
+hotkeys for picking tools
+    hotkey by self picks left, with ctrl picks right
+
+toolboxview:
+    file menu, edit menu, view menu
+    change left and right colors directly
+    copy palette swatches
+    bg changer labeled
+    bg changer in bottom row
+    label scale buttons
+    + and - buttons instead of arrows
+
+jsonification of tools for saving undo state
+
+saving hotkeys
+
+nicer default palette
+
+save palette with file
+
+undo tree

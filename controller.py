@@ -160,8 +160,8 @@ class DragTool(Tool):
     ready.
     """
 
-    def __init__(self, color, ctrl):
-        super(DragTool, self).__init__(color, ctrl)
+    def __init__(self, *args, **kwargs):
+        super(DragTool, self).__init__(*args, **kwargs)
         self.start_x, self.start_y = None, None
         self.end_x, self.end_y = None, None
 
@@ -322,8 +322,8 @@ class ClickTool(Tool):
     A tool that accepts only one click and release before being ready.
     """
 
-    def __init__(self, color, ctrl):
-        super(ClickTool, self).__init__(color, ctrl)
+    def __init__(self, *args, **kwargs):
+        super(ClickTool, self).__init__(*args, **kwargs)
         self.x, self.y = None, None
 
     def _accept_press(self, x, y):
@@ -380,11 +380,9 @@ class EyeDropper(ClickTool):
     def accept_release(self, x, y, modifiers):
         self.x, self.y = x, y
         if pyglet.window.key.MOD_CTRL & modifiers:
-            self.to_replace = "left"
-        elif pyglet.window.key.MOD_ALT & modifiers:
             self.to_replace = "right"
         else:
-            self.to_replace = None
+            self.to_replace = "left"
         self._is_ready = True
         return self.is_ready()
 

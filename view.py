@@ -282,6 +282,11 @@ class ToolboxView(SelfRegistrant):
         self.tool_alpha[self.left_tool].blit(0, 0)
         self.tool_alpha[self.right_tool].blit(33, 0)
 
+class TileListView(SelfRegistrant):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("width", 200)
+        kwargs.setdefault("height", 200)
 
 class SlammerView(object):
     """
