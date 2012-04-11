@@ -114,9 +114,10 @@ class ToolboxView(SelfRegistrant):
                   "on_bg_color_selected"]
 
     tool_icons = ["pencil.png", "eraser.png", "killeraser.png", "line.png",
-                  "circle.png", "hollowcircle.png", "rectangle.png",
-                  "hollowrectangle.png", "tileplacer.png", "fillbucket.png",
-                  "localreplace.png", "globalreplace.png", "animation.png"]
+                  "rectangle.png", "hollowrectangle.png", "circle.png",
+                  "hollowcircle.png", "eyedropper.png", "tileplacer.png",
+                  "fillbucket.png", "localreplace.png", "globalreplace.png",
+                  "animation.png"]
     tool_alpha = [pyglet.resource.image("res/alpha/"+loc) for loc in tool_icons]
     tool_icons = [pyglet.resource.image("res/normal/"+loc) for loc in tool_icons]
     tool_w, tool_h = 32, 32

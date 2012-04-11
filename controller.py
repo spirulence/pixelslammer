@@ -54,7 +54,7 @@ class Tool(object):
         Where the actual work of accepting drag information is done.
         """
 
-    def accept_release(self, x, y):
+    def accept_release(self, x, y, modifiers):
         """
         Send a mouse release to this tool. Returns the result of is_ready after this
         call is executed.
@@ -372,10 +372,31 @@ class KillEraser(ClickTool):
             tile_x, tile_y = canvas.get_tile(self.x, self.y)
             canvas.tiles[tile_y][tile_x].erase()
 
-class EyeDropper(Tool):
+class EyeDropper(ClickTool):
     """
     Pick a current color from one already on the canvas.
     """
+
+    def accept_release(self, x, y, modifiers):
+        self.x, self.y = x, y
+        if pyglet.window.key.MOD_CTRL & modifiers:
+            self.to_replace = "left"
+        elif pyglet.window.key.MOD_ALT & modifiers:
+            self.to_replace = "right"
+        else:
+            self.to_replace = None
+        self._is_ready = True
+        return self.is_ready()
+
+    def do(self, canvas):
+        if self.is_ready():
+            new_color = canvas.get_pixel(self.x, self.y)
+            if self.to_replace == "left":
+                self.ctrl.left_color = new_color
+                self.ctrl.update_tool_colors()
+            elif self.to_replace == "right":
+                self.ctrl.right_color = new_color
+                self.ctrl.update_tool_colors()
 
 class TilePlacer(Tool):
     """
@@ -402,9 +423,9 @@ class SlammerCtrl(object):
     The Pixel Slammer business logic sitting in between the view and the model.
     """
 
-    tools = [Pencil, Eraser, KillEraser, Line, Circle, HollowCircle, Rectangle,
-             HollowRectangle, TilePlacer, FloodFill, LocalColorReplace,
-             GlobalColorReplace, Filmstrip]
+    tools = [Pencil, Eraser, KillEraser, Line, Rectangle, HollowRectangle,
+             Circle, HollowCircle, EyeDropper, TilePlacer, FloodFill,
+             LocalColorReplace, GlobalColorReplace, Filmstrip]
 
     def __init__(self, model, view):
         """
@@ -431,6 +452,11 @@ class SlammerCtrl(object):
 
         self.view.toolbox.set_palette(self.palette)
         self.view.toolbox.set_visible()
+        
+    def update_tool_colors(self):
+        self.view.toolbox.left_color = self.left_color[:3]
+        self.view.toolbox.right_color = self.right_color[:3]
+        self.view.toolbox.on_draw()
 
     def should_push_new_action(self):
         return not self.action_stack or self.action_stack[-1].is_ready()
@@ -461,7 +487,8 @@ class SlammerCtrl(object):
         if self.should_push_new_action():
             self.push_new_action(buttons, modifiers)
 
-        self.get_top_action().accept_release(*self.downscale_coords(x, y))
+        scaled_x, scaled_y = self.downscale_coords(x, y)
+        self.get_top_action().accept_release(scaled_x, scaled_y, modifiers)
 
         self.run_action_if_ready()
 
