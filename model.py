@@ -1,10 +1,8 @@
 __author__ = 'cseebach'
 
-import pickle
 import ctypes
 
 import pyglet
-from pyglet import gl
 
 def must_flush(to_wrap):
     def wrapped(self, *args, **kwargs):
