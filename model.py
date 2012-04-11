@@ -92,7 +92,7 @@ class Tile(pyglet.image.ImageData):
         return super(Tile, self).get_region(x, y, width, height)
 
     def copy(self):
-        return Tile(self.width, self.height, self.ctypes_data)
+        return Tile(self.width, self.height, data=self.ctypes_data)
 
     def save(self, *args, **kwargs):
         self.set_data("RGBA", self.width * 4, "".join(chr(i) for i in self.ctypes_data))
