@@ -468,7 +468,6 @@ class SlammerCtrl(object):
         if self.action_incomplete():
             preview_canvas = self.model.canvas.copy()
             self.get_top_action().do(preview_canvas)
-            preview_canvas.flush_changes()
             self.view.canvas.draw_canvas(preview_canvas)
         else:
             self.view.canvas.draw_canvas(self.model.canvas)
@@ -527,4 +526,3 @@ class SlammerCtrl(object):
     def run_action_if_ready(self):
         if self.get_top_action().is_ready():
             self.get_top_action().do(self.model.canvas)
-            self.model.canvas.flush_changes()
