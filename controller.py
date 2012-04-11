@@ -391,6 +391,8 @@ class EyeDropper(ClickTool):
     def do(self, canvas):
         if self.is_ready():
             new_color = canvas.get_pixel(self.x, self.y)
+            if new_color[3] == 0:
+                new_color = [int(c*255) for c in self.ctrl.background_color[:3]]
             if self.to_replace == "left":
                 self.ctrl.left_color = new_color
                 self.ctrl.update_tool_colors()
@@ -456,7 +458,7 @@ class SlammerCtrl(object):
     def update_tool_colors(self):
         self.view.toolbox.left_color = self.left_color[:3]
         self.view.toolbox.right_color = self.right_color[:3]
-        self.view.toolbox.on_draw()
+        self.view.toolbox.dispatch_event("on_draw")
 
     def should_push_new_action(self):
         return not self.action_stack or self.action_stack[-1].is_ready()
@@ -505,6 +507,7 @@ class SlammerCtrl(object):
     def on_bg_color_selected(self, color):
         self.background_color = [c / 255.0 for c in color]
         self.background_color.append(1.0)
+        self.view.canvas.dispatch_event("on_draw")
 
     def on_color_selected(self, color, side):
         if side == "left":
