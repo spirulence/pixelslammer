@@ -18,8 +18,6 @@ class Tile(pyglet.image.ImageData):
     Represents a drawing surface with pixel access.
     """
 
-    # TODO autoflush changes on any access that requires it
-
     def __init__(self, width, height, data=None):
         #noinspection PyCallingNonCallable,PyTypeChecker
         self.ctypes_data = (ctypes.c_ubyte * (width * height * 4))()
