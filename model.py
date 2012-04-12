@@ -50,6 +50,7 @@ class Tile(pyglet.image.ImageData):
         Changes made with set_pixel are not actually seen until this method is called.
         """
         self.set_data("RGBA", self.width * 4, ctypes.pointer(self.ctypes_data))
+        self.dirty = False
 
     @must_flush
     def blit_to_texture(self, target, level, x, y, z, internalformat=None):
