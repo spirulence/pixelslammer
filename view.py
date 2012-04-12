@@ -67,6 +67,7 @@ class CanvasView(SelfRegistrant):
                            gl.GL_NEAREST)
         gl.glEnable(gl.GL_BLEND)
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+        gl.glColor3ub(255,255,255)
         texture.width = canvas.width * self.scale
         texture.height = canvas.height * self.scale
         texture.blit(0, 0)
