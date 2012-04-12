@@ -62,15 +62,8 @@ class CanvasView(SelfRegistrant):
         self.highlighted_cell = (x/self.scale)//self.tile_size[0], (y/self.scale)//self.tile_size[1]
 
     def draw_canvas(self, canvas):
-        texture = canvas.get_texture()
-        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
-                           gl.GL_NEAREST)
-        gl.glEnable(gl.GL_BLEND)
-        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
-        gl.glColor3ub(255,255,255)
-        texture.width = canvas.width * self.scale
-        texture.height = canvas.height * self.scale
-        texture.blit(0, 0)
+        sprites, batch, group = canvas.get_sprites(self.scale)
+        batch.draw()
 
         if self.highlighted_cell and self.draw_borders:
             h_x, h_y = self.highlighted_cell

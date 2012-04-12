@@ -3,6 +3,7 @@ __author__ = 'cseebach'
 import ctypes
 
 import pyglet
+from pyglet import gl
 
 def must_flush(to_wrap):
     def wrapped(self, *args, **kwargs):
@@ -101,6 +102,12 @@ class Tile(pyglet.image.ImageData):
             self.ctypes_data[i] = 0
         self.dirty = True
 
+class NearestMagGroup(pyglet.graphics.Group):
+
+    def set_state(self):
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
+                           gl.GL_NEAREST)
+
 class Canvas(object):
 
     def __init__(self, tile_size, canvas_size, copy_from=None):
@@ -135,14 +142,19 @@ class Canvas(object):
     def copy(self):
         return Canvas(self.tile_size, self.canvas_size, copy_from=self)
 
-    def get_texture(self):
-        texture = pyglet.image.Texture.create(self.tile_size[0]*self.canvas_size[0],
-                                              self.tile_size[1]*self.canvas_size[1])
-        for y in xrange(self.canvas_size[1]):
-            for x in xrange(self.canvas_size[0]):
-                texture.blit_into(self.tiles[y][x], x*self.tile_size[0],
-                                  y*self.tile_size[1], 0)
-        return texture
+    def get_sprites(self, scale):
+        sprites = []
+        batch = pyglet.graphics.Batch()
+        group = NearestMagGroup()
+        for y, row in enumerate(self.tiles):
+            for x, tile in enumerate(row):
+                s_x = self.tile_size[0] * scale * x
+                s_y = self.tile_size[1] * scale * y
+                sprite = pyglet.sprite.Sprite(tile, x=s_x, y=s_y, group=group,
+                                              batch=batch)
+                sprite.scale = scale
+                sprites.append(sprite)
+        return sprites, batch, group
 
     def get_tile(self, x, y):
         return x // self.tile_size[0], y // self.tile_size[1]
