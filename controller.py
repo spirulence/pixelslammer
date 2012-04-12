@@ -538,7 +538,6 @@ class SlammerCtrl(object):
             self.action_stack.pop()
             for action in self.action_stack:
                 action.do(self.model.canvas)
-            self.model.canvas.flush_changes()
             self.view.canvas.set_canvas(self.model.canvas)
 
     def push_new_action(self, buttons, modifiers):
