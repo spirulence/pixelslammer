@@ -143,7 +143,7 @@ class Tile(object):
         return texture.get_transform(flip_x=self.flip_x, flip_y=self.flip_y,
                                      rotate=self.rotation)
 
-    def copy(self, shallow=True):
+    def copy(self, shallow=False):
         copy = Tile(self.pixel_area.width, self.pixel_area.height)
         copy.flip_x, copy.flip_y = self.flip_x, self.flip_y
         copy.rotation = self.rotation
