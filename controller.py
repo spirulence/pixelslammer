@@ -526,8 +526,6 @@ class SlammerCtrl(object):
     def on_key_press(self, key, modifiers):
         if key == keys.Z and keys.MOD_CTRL & modifiers:
             self.undo()
-        elif key == keys.S:
-            self.model.canvas.tile.save("whee.png")
 
     def action_incomplete(self):
         return self.action_stack and not self.get_top_action().is_ready()
