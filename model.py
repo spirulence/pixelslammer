@@ -8,7 +8,7 @@ def must_flush(to_wrap):
     def wrapped(self, *args, **kwargs):
         if self.dirty:
             self.flush_changes()
-        to_wrap(self, *args, **kwargs)
+        return to_wrap(self, *args, **kwargs)
     return wrapped
 
 class Tile(pyglet.image.ImageData):
