@@ -432,8 +432,7 @@ class SlammerCtrl(object):
         Create a new PixelSlammer controller. Supply the model and the view.
         """
         self.base_model = model
-        #self.model = model.copy()
-        self.model = model
+        self.model = model.copy()
         self.action_stack = []
 
         self.left_tool = Pencil
@@ -496,15 +495,12 @@ class SlammerCtrl(object):
     def on_canvas_draw(self):
         pyglet.gl.glClearColor(*self.background_color)
         self.view.canvas.clear()
-        """
         if self.action_incomplete():
             preview_canvas = self.model.canvas.copy()
             self.get_top_action().do(preview_canvas)
             self.view.canvas.draw_canvas(preview_canvas)
         else:
             self.view.canvas.draw_canvas(self.model.canvas)
-        """
-        self.view.canvas.draw_canvas(self.model.canvas)
 
     def on_bg_color_selected(self, color):
         self.background_color = [c / 255.0 for c in color]
