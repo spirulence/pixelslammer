@@ -62,7 +62,7 @@ class CanvasView(SelfRegistrant):
         self.highlighted_cell = (x/self.scale)//self.tile_size[0], (y/self.scale)//self.tile_size[1]
 
     def draw_canvas(self, canvas):
-        sprites, batch, group = canvas.get_sprites(self.scale)
+        sprites, batch = canvas.get_sprites(self.scale)
         batch.draw()
 
         if self.highlighted_cell and self.draw_borders:
@@ -159,8 +159,8 @@ class ToolboxView(SelfRegistrant):
     def on_mouse_motion(self, x, y, dx, dy):
         for i, t_point, _ in self.tools:
             t_x, t_y = t_point
-            if x >= t_x and x < t_x + self.tool_w:
-                if y >= t_y and y < t_y + self.tool_h:
+            if t_x <= x < t_x + self.tool_w:
+                if t_y <= y < t_y + self.tool_h:
                     self.highlighted = i
                     break
         else:
@@ -201,23 +201,23 @@ class ToolboxView(SelfRegistrant):
                 self.dispatch_event("on_bg_color_selected", new_bg_color)
 
     def scale_decreased(self, x, y):
-        if x > self.minus_loc[0] and x < self.minus_loc[0] + self.arrow_w:
-            if y > self.minus_loc[1] and y < self.minus_loc[1] + self.arrow_h:
+        if self.minus_loc[0] < x < self.minus_loc[0] + self.arrow_w:
+            if self.minus_loc[1] < y < self.minus_loc[1] + self.arrow_h:
                 return True
 
     def scale_increased(self, x, y):
-        if x > self.plus_loc[0] and x < self.plus_loc[0] + self.arrow_w:
-            if y > self.plus_loc[1] and y < self.plus_loc[1] + self.arrow_h:
+        if self.plus_loc[0] < x < self.plus_loc[0] + self.arrow_w:
+            if self.plus_loc[1] < y < self.plus_loc[1] + self.arrow_h:
                 return True
 
     def over_palette_swatch(self, x, y):
         for sw_x, sw_y in self.swatch_loc:
-            if x > sw_x and x < sw_x + self.swatch_w:
-                if y > sw_y and y < sw_y + self.swatch_h:
+            if sw_x < x < sw_x + self.swatch_w:
+                if sw_y < y < sw_y + self.swatch_h:
                     return True
         for sw_x, sw_y in self.swatch2_loc:
-            if x > sw_x and x < sw_x + self.swatch_w:
-                if y > sw_y and y < sw_y + self.swatch_h:
+            if sw_x < x < sw_x + self.swatch_w:
+                if sw_y < y < sw_y + self.swatch_h:
                     return True
 
     def get_palette_swatch(self, x, y):
@@ -261,6 +261,9 @@ class ToolboxView(SelfRegistrant):
 
     def on_draw(self):
         pyglet.gl.glClearColor(.25,.25,.25,1.0)
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+
         self.clear()
         for i, location, icon in self.tools:
             icon.blit(*location)

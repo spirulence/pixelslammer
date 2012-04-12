@@ -102,12 +102,6 @@ class Tile(pyglet.image.ImageData):
             self.ctypes_data[i] = 0
         self.dirty = True
 
-class NearestMagGroup(pyglet.graphics.Group):
-
-    def set_state(self):
-        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
-                           gl.GL_NEAREST)
-
 class Canvas(object):
 
     def __init__(self, tile_size, canvas_size, copy_from=None):
@@ -145,16 +139,16 @@ class Canvas(object):
     def get_sprites(self, scale):
         sprites = []
         batch = pyglet.graphics.Batch()
-        group = NearestMagGroup()
         for y, row in enumerate(self.tiles):
             for x, tile in enumerate(row):
                 s_x = self.tile_size[0] * scale * x
                 s_y = self.tile_size[1] * scale * y
-                sprite = pyglet.sprite.Sprite(tile, x=s_x, y=s_y, group=group,
-                                              batch=batch)
+                sprite = pyglet.sprite.Sprite(tile, x=s_x, y=s_y, batch=batch)
                 sprite.scale = scale
+                gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
+                                   gl.GL_NEAREST)
                 sprites.append(sprite)
-        return sprites, batch, group
+        return sprites, batch
 
     def get_tile(self, x, y):
         return x // self.tile_size[0], y // self.tile_size[1]
