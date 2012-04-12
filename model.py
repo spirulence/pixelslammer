@@ -12,7 +12,7 @@ def must_flush(to_wrap):
         return to_wrap(self, *args, **kwargs)
     return wrapped
 
-class Tile(pyglet.image.ImageData):
+class PixelArea(pyglet.image.ImageData):
     """
     Represents a drawing surface with pixel access.
     """
@@ -22,7 +22,7 @@ class Tile(pyglet.image.ImageData):
         self.ctypes_data = (ctypes.c_ubyte * (width * height * 4))()
         if data:
             self.ctypes_data[:] = data
-        super(Tile, self).__init__(width, height, "RGBA", ctypes.pointer(self.ctypes_data))
+        super(PixelArea, self).__init__(width, height, "RGBA", ctypes.pointer(self.ctypes_data))
         self.dirty = False
 
     def get_pixel(self, x, y):
@@ -55,52 +55,103 @@ class Tile(pyglet.image.ImageData):
 
     @must_flush
     def blit_to_texture(self, target, level, x, y, z, internalformat=None):
-        super(Tile, self).blit_to_texture(target, level, x, y, z, internalformat)
+        super(PixelArea, self).blit_to_texture(target, level, x, y, z, internalformat)
 
     @must_flush
     def blit_into(self, source, x, y, z):
-        super(Tile, self).blit_into(source, x, y, z)
+        super(PixelArea, self).blit_into(source, x, y, z)
 
     @must_flush
     def get_mipmapped_texture(self):
-        return super(Tile, self).get_mipmapped_texture()
+        return super(PixelArea, self).get_mipmapped_texture()
 
     @must_flush
     def blit(self, x, y, z=0, width=None, height=None):
-        super(Tile, self).blit(x, y, z, width, height)
+        super(PixelArea, self).blit(x, y, z, width, height)
 
     @must_flush
     def create_texture(self, cls, rectangle=False, force_rectangle=False):
-        return super(Tile, self).create_texture(cls, rectangle, force_rectangle)
+        return super(PixelArea, self).create_texture(cls, rectangle, force_rectangle)
 
     @must_flush
     def get_data(self, format, pitch):
-        return super(Tile, self).get_data(format, pitch)
+        return super(PixelArea, self).get_data(format, pitch)
 
     @must_flush
     def get_image_data(self):
-        return super(Tile, self).get_image_data()
+        return super(PixelArea, self).get_image_data()
 
     @must_flush
     def get_texture(self, rectangle=False, force_rectangle=False):
-        return super(Tile, self).get_texture(rectangle, force_rectangle)
+        return super(PixelArea, self).get_texture(rectangle, force_rectangle)
 
     @must_flush
     def get_region(self, x, y, width, height):
-        return super(Tile, self).get_region(x, y, width, height)
+        return super(PixelArea, self).get_region(x, y, width, height)
 
     def copy(self):
-        return Tile(self.width, self.height, data=self.ctypes_data)
+        return PixelArea(self.width, self.height, data=self.ctypes_data)
 
     def save(self, *args, **kwargs):
         self.set_data("RGBA", self.width * 4, "".join(chr(i) for i in self.ctypes_data))
-        super(Tile, self).save(*args, **kwargs)
+        super(PixelArea, self).save(*args, **kwargs)
         self.flush_changes()
 
     def erase(self):
         for i in xrange(len(self.ctypes_data)):
             self.ctypes_data[i] = 0
         self.dirty = True
+
+class Tile(object):
+
+    def __init__(self, width, height):
+        self.pixel_area = PixelArea(width, height)
+        self.rotation = 0
+        self.flip_x = False
+        self.flip_y = False
+
+    def flip_x(self):
+        self.flip_x = not self.flip_x
+
+    def flip_y(self):
+        self.flip_y = not self.flip_y
+
+    def transform_coords(self, x, y):
+        if self.flip_x:
+            x = self.pixel_area.width - x
+        if self.flip_y:
+            y = self.pixel_area.height - y
+
+        to_rotate = self.rotation
+        while to_rotate > 0:
+            x, y = y, x
+            y = -y
+            y += self.pixel_area.height
+            to_rotate -= 90
+
+        return x, y
+
+    def set_pixel(self, x, y, color):
+        real_x, real_y = self.transform_coords(x, y)
+        self.pixel_area.set_pixel(real_x, real_y, color)
+
+    def get_pixel(self, x, y):
+        return self.pixel_area.get_pixel(*self.transform_coords(x, y))
+
+    def get_transformed(self):
+        texture = self.pixel_area.get_texture()
+        return texture.get_transform(flip_x=self.flip_x, flip_y=self.flip_y,
+                                     rotate=self.rotation)
+
+    def copy(self, shallow=True):
+        copy = Tile(self.pixel_area.width, self.pixel_area.height)
+        copy.flip_x, copy.flip_y = self.flip_x, self.flip_y
+        copy.rotation = self.rotation
+        if shallow:
+            copy.pixel_area = self.pixel_area
+        else:
+            copy.pixel_area = self.pixel_area.copy()
+        return copy
 
 class Canvas(object):
 
@@ -141,13 +192,15 @@ class Canvas(object):
         batch = pyglet.graphics.Batch()
         for y, row in enumerate(self.tiles):
             for x, tile in enumerate(row):
-                s_x = self.tile_size[0] * scale * x
-                s_y = self.tile_size[1] * scale * y
-                sprite = pyglet.sprite.Sprite(tile, x=s_x, y=s_y, batch=batch)
-                sprite.scale = scale
-                gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
-                                   gl.GL_NEAREST)
-                sprites.append(sprite)
+                if tile:
+                    s_x = self.tile_size[0] * scale * x
+                    s_y = self.tile_size[1] * scale * y
+                    with_transforms = tile.get_transformed()
+                    sprite = pyglet.sprite.Sprite(with_transforms, x=s_x, y=s_y, batch=batch)
+                    sprite.scale = scale
+                    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
+                                       gl.GL_NEAREST)
+                    sprites.append(sprite)
         return sprites, batch
 
     def get_tile(self, x, y):
