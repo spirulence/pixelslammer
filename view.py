@@ -245,20 +245,18 @@ class ToolboxView(SelfRegistrant):
             swatches = []
             for x, y in self.swatch_loc:
                 swatches.extend((x, y, x, y+16, x+16, y+16, x+16, y))
-            swatches2 = []
             for x, y in self.swatch2_loc:
-                swatches2.extend((x, y, x, y+16, x+16, y+16, x+16, y))
+                swatches.extend((x, y, x, y+16, x+16, y+16, x+16, y))
 
             sw_color = []
             for color in self.palette[::2]:
                 sw_color.extend(color*4)
-            sw2_color = []
             for color in self.palette[1::2]:
-                sw2_color.extend(color*4)
+                sw_color.extend(color*4)
 
             pyglet.graphics.draw(4*len(self.palette), gl.GL_QUADS,
-                ("v2i", swatches+swatches2),
-                ("c3B", sw_color+sw2_color))
+                ("v2i", swatches),
+                ("c3B", sw_color))
 
         x, y = self.tool_loc[-1][0]+35, self.tool_loc[-1][1]
         pyglet.graphics.draw(4, gl.GL_QUADS,
